@@ -1,0 +1,35 @@
+{
+  "name": "miijs",
+  "version": "1.0.0",
+  "description": "Read, Edit, Write, and make Special Miis from a Wiimote binary file or 3DS QR Code to a binary file or QR code",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SMOMusic/MiiJS.git"
+  },
+  "keywords": [
+    "Mii",
+    "QR",
+    "3DS",
+    "Wii",
+    "Remote",
+    "Special"
+  ],
+  "author": "Kestron",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SMOMusic/MiiJS/issues"
+  },
+  "homepage": "https://github.com/SMOMusic/MiiJS#readme",
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "fs": "^0.0.1-security",
+    "https": "^1.0.0",
+    "jimp": "^0.22.7",
+    "jsqr": "^1.4.0",
+    "qrcode": "^1.5.3"
+  }
+}
