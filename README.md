@@ -16,4 +16,4 @@ To make a special Mii, read in the file using the appropriate function, set `mii
  
  
 # Credits
- - (kazuki-4ys' MiiInfoEditorCTR)[https://github.com/kazuki-4ys/kazuki-4ys.github.io/tree/master/web_apps/MiiInfoEditorCTR], I took the code for how to decrypt and reencrypt the QR codes from here, including the asmCrypto.js file (with some slight modifications to work in my coding style). I believe I also modified the code for rendering the Mii using Nintendo's Mii Studio from here as well.
+ - [kazuki-4ys' MiiInfoEditorCTR](https://github.com/kazuki-4ys/kazuki-4ys.github.io/tree/master/web_apps/MiiInfoEditorCTR), I took the code for how to decrypt and reencrypt the QR codes from here, including the asmCrypto.js file (with some slight modifications to work in my coding style). I believe I also modified the code for rendering the Mii using Nintendo's Mii Studio from here as well.
