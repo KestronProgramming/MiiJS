@@ -4,6 +4,9 @@ Read, Edit, Write, and make Special Miis from a Wiimote binary file or 3DS QR Co
 ## Installation
 `npm i miijs` OR `npm install miijs`
 
+## Making a Special Mii
+To make a special Mii, read in the file using the appropriate function, set `mii.info.type="Special";`, and then write a new file with the appropriate function.
+
 # Functions
  - async read3DSQR(pathToQR), returns JSON
  - write3DSQR(miiJSON,path), writes QR
