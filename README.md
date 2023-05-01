@@ -1,6 +1,9 @@
 # MiiJS
 Read, Edit, Write, and make Special Miis from a Wiimote binary file or 3DS QR Code to a binary file or QR code
 
+## Installation
+`npm i miijs` OR `npm install miijs`
+
 # Functions
  - async read3DSQR(pathToQR), returns JSON
  - write3DSQR(miiJSON,path), writes QR
