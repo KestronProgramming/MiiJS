@@ -9,9 +9,10 @@ To make a special Mii, read in the file using the appropriate function, set `mii
 
 # Functions
  - async read3DSQR(pathToQR), returns JSON
- - write3DSQR(miiJSON,path), writes QR
+ - write3DSQR(miiJSON, path), writes QR
  - readWiiBin(pathToMii), returns JSON
- - writeWiiBin(miiJSON,path), writes new bin
+ - writeWiiBin(miiJSON, path), writes new bin to the path specified
+ - render3DSMiiFromJSON(miiJSON, path), writes PNG representation of Mii's face to the path specified
  
  
  
