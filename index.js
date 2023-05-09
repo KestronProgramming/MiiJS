@@ -718,12 +718,18 @@ module.exports={
             miiJson.info.birthday=parseInt(temp2.slice(6,8)+temp.slice(0,3),2);
             miiJson.info.birthMonth=parseInt(temp.slice(3,7),2);
             var name="";
-            for(var i=0x1A;i<0x2E;i++){
+            for(var i=0x1A;i<0x2E;i+=2){
+                if(getBinaryFromAddress(i)==="00000000"){
+                    break;
+                }
                 name+=binary.slice(i,i+1);
             }
             miiJson.name=name.replaceAll("\x00","");
             var cname="";
-            for(var i=0x48;i<0x5C;i++){
+            for(var i=0x48;i<0x5C;i+=2){
+                if(getBinaryFromAddress(i)==="00000000"){
+                    break;
+                }
                 cname+=binary.slice(i,i+1);
             }
             miiJson.creatorName=cname.replaceAll("\x00","");
@@ -792,7 +798,7 @@ module.exports={
             miiJson.glasses.col=glassesCols3DS[parseInt(temp.slice(1,4),2)];
             temp2=getBinaryFromAddress(0x45);
             miiJson.glasses.size=parseInt(temp2.slice(5,8)+temp[0],2);
-            miiJson.glasses.yPos=parseInt(temp2.slice(1,5),2);
+            miiJson.glasses.yPos=parseInt(temp2.slice(0,5),2);
             temp=getBinaryFromAddress(0x46);
             miiJson.mole.on=temp[7]==="0"?false:true;
             miiJson.mole.size=parseInt(temp.slice(3,7),2);
@@ -942,7 +948,10 @@ module.exports={
             miiBin+="1000101011010010000001101000011100011000110001100100011001100110010101100111111110111100000001110101110001000101011101100000001110100100010000000000000000000000".slice(0,8*8);
             miiBin+=mii.info.type==="Special"?"0":"1";
             miiBin+="0000000";
-            miiBin+="0111111110111100000001110101110001000101011101100000001110100100010000000000000000000000";
+            for(var i=0;i<3;i++){
+                miiBin+=Math.floor(Math.random()*255).toString(2).padStart(8,"0");
+            }
+            miiBin+="0000000001000101011101100000001110100100010000000000000000000000";
             miiBin+=mii.info.birthday.toString(2).padStart(5,"0").slice(2,5);
             miiBin+=mii.info.birthMonth.toString(2).padStart(4,"0");
             miiBin+=mii.info.gender==="Male"?"0":"1";
@@ -1105,7 +1114,7 @@ module.exports={
         studioMii[0x27] = mii.mouth.yPos;
         studioMii[0x29] = mii.facialHair.mustacheType;
         studioMii[1] = mii.facialHair.beardType;
-        studioMii[0] = mii.facialHair.col;
+        studioMii[0] = hairCols3DS.indexOf(mii.facialHair.col);
         if (!studioMii[0]) studioMii[0] = 8;
         studioMii[0x28] = mii.facialHair.mustacheSize;
         studioMii[0x2A] = mii.facialHair.mustacheYPos;
