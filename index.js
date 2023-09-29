@@ -82,7 +82,7 @@ function downloadImage(url, filepath) {
         });
     });
 }
-var wiiCols=["Red","Orange","Yellow","Lime","Green","Blue","Light Blue","Pink","Purple","Brown","White","Black"];
+var wiiCols=["Red","Orange","Yellow","Lime","Green","Blue","Cyan","Pink","Purple","Brown","White","Black"];
 var wiiFaceFeatures=["None","Blush","Makeup and Blush","Freckles","Bags","Wrinkles on Cheeks","Wrinkles near Eyes","Chin Wrinkle","Makeup","Stubble","Wrinkles near Mouth","Wrinkles"];
 var wiiSkinColors=["White","Tanned White","Darker Skin","Tanned Darker","Mostly Black","Black"];
 var wiiMouthColors=["Peach","Red","Pink"];
@@ -279,7 +279,7 @@ var hairTable={
     '70': '132',
     '71': '633'
 };
-var cols3DS=["Red","Orange","Yellow","Lime","Green","Blue","Teal","Pink","Purple","Brown","White","Black"];
+var cols3DS=["Red","Orange","Yellow","Lime","Green","Blue","Cyan","Pink","Purple","Brown","White","Black"];
 var skinCols3DS=["White","Tanned White","Darker White","Tanned Darker","Mostly Black","Black"];
 var faceFeatures3DS=["None","Near Eye Creases","Cheek Creases","Far Eye Creases","Near Nose Creases","Giant Bags","Cleft Chin","Chin Crease","Sunken Eyes","Far Cheek Creases","Lines Near Eyes","Wrinkles"];
 var makeups3DS=["None","Blush","Orange Blush","Blue Eyes","Blush 2","Orange Blush 2","Blue Eyes and Blush","Orange Eyes and Blush","Purple Eyes and Blush 2","Freckles","Beard Stubble","Beard and Mustache Stubble"];
@@ -593,8 +593,297 @@ function lookupTable(table,value,paginated){
   }
   return undefined;
 }
+var kidNames={
+    "Male":[
+        "Aaron",
+        "Adam",
+        "Adrian",
+        "Aiden",
+        "Ayden",
+        "Alex",
+        "Alexander",
+        "Alfie",
+        "Andrew",
+        "Anthony",
+        "Archie",
+        "Austin",
+        "Ben",
+        "Benjamin",
+        "Bentley",
+        "Bill",
+        "Billy",
+        "Blake",
+        "Bradley",
+        "Brandon",
+        "Brayden",
+        "Brody",
+        "Bryson",
+        "Caleb",
+        "Callum",
+        "Cameron",
+        "Carlos",
+        "Charlie",
+        "Charles",
+        "Carson",
+        "Carter",
+        "Chase",
+        "Chris",
+        "Christian",
+        "Cody",
+        "Colton",
+        "Connor",
+        "Cooper",
+        "Damian",
+        "Daniel",
+        "David",
+        "Dexter",
+        "Dominic",
+        "Dylan",
+        "Easton",
+        "Edward",
+        "Eli",
+        "Elijah",
+        "Elliot",
+        "Ethan",
+        "Evan",
+        "Finlay",
+        "Frankie",
+        "Freddie",
+        "Gabriel",
+        "Gavin",
+        "George",
+        "Grayson",
+        "Harrison",
+        "Harvey",
+        "Henry",
+        "Hudson",
+        "Hugo",
+        "Hunter",
+        "Ian",
+        "Isaac",
+        "Isaiah",
+        "Jace",
+        "Jack",
+        "Jackson",
+        "Jaxon",
+        "Jacob",
+        "Jake",
+        "James",
+        "Jason",
+        "Jayden",
+        "Jenson",
+        "Jeremiah",
+        "John",
+        "Juan",
+        "Jonathan",
+        "Jordan",
+        "Jose",
+        "Joseph",
+        "Josiah",
+        "Joshua",
+        "Jude",
+        "Julian",
+        "Justin",
+        "Kai",
+        "Kayden",
+        "Kevin",
+        "Kian",
+        "Landon",
+        "Levi",
+        "Leo",
+        "Logan",
+        "Lucas",
+        "Luke",
+        "Luis",
+        "Lachlan",
+        "Mason",
+        "Matthew",
+        "Max",
+        "Michael",
+        "Miguel",
+        "Nathan",
+        "Nathaniel",
+        "Nicholas",
+        "Noah",
+        "Nolan",
+        "Olly",
+        "Oliver",
+        "Owen",
+        "Parker",
+        "Philip",
+        "Rhys",
+        "Reece",
+        "Rob",
+        "Robert",
+        "Ryan",
+        "Ryder",
+        "Samuel",
+        "Sebastian",
+        "Seth",
+        "Thomas",
+        "Tommy",
+        "Trent",
+        "Tristan",
+        "Tyler",
+        "William",
+        "Liam",
+        "Wyatt",
+        "Xavier",
+        "Zac",
+        "Zachary",
+        "Alex",
+        "Alexis",
+        "Angel",
+        "Bailey",
+        "Darcy",
+        "Darcey",
+        "Genesis",
+        "Kennedy",
+        "Mackenzie",
+        "Morgan",
+        "Peyton",
+        "Sam",
+        "Taylor"
+    ],
+    "Female":[
+        "Aaliyah",
+        "Abigail",
+        "Addison",
+        "Madison",
+        "Maddison",
+        "Alexa",
+        "Alexandra",
+        "Alison",
+        "Allison",
+        "Alyssa",
+        "Amelia",
+        "Amy",
+        "Andrea",
+        "Anna",
+        "Annabelle",
+        "Aria",
+        "Ariana",
+        "Arianna",
+        "Ashley",
+        "Aubree",
+        "Aubrey",
+        "Audrey",
+        "Autumn",
+        "Ava",
+        "Avery",
+        "Bella",
+        "Bethany",
+        "Brianna",
+        "Brooklyn",
+        "Camila",
+        "Caroline",
+        "Charlotte",
+        "Chloe",
+        "Khloe",
+        "Claire",
+        "Ella",
+        "Ellie",
+        "Elenor",
+        "Elizabeth",
+        "Lizabeth",
+        "Liza",
+        "Emily",
+        "Emma",
+        "Eva",
+        "Evie",
+        "Evelyn",
+        "Faith",
+        "Gabriella",
+        "Gianna",
+        "Grace",
+        "Hailey",
+        "Hannah",
+        "Harper",
+        "Heidi",
+        "Hollie",
+        "Holly",
+        "Isabella",
+        "Isobel",
+        "Jasmine",
+        "Jessica",
+        "Jocelyn",
+        "Julia",
+        "Katherine",
+        "Kayla",
+        "Kaylee",
+        "Kimberly",
+        "Kylie",
+        "Lacey",
+        "Lauren",
+        "Layla",
+        "Leah",
+        "Lexie",
+        "Lilian",
+        "Lily",
+        "Lola",
+        "London",
+        "Lucy",
+        "Lydia",
+        "Madeline",
+        "Madelyn",
+        "Maisie",
+        "Makayla",
+        "Maya",
+        "Mya",
+        "Megan",
+        "Melanie",
+        "Mia",
+        "Molly",
+        "Naomi",
+        "Natalie",
+        "Nevaeh",
+        "Olivia",
+        "Paige",
+        "Poppy",
+        "Piper",
+        "Reagan",
+        "Rebecca",
+        "Riley",
+        "Rosie",
+        "Samantha",
+        "Sarah",
+        "Savannah",
+        "Scarlett",
+        "Serenity",
+        "Skye",
+        "Skylar",
+        "Sofia",
+        "Sophia",
+        "Sophie",
+        "Spring",
+        "Stella",
+        "Summer",
+        "Sydney",
+        "Trinity",
+        "Vanessa",
+        "Victoria",
+        "Violet",
+        "Winter",
+        "Zara",
+        "Zoe",
+        "Zoey",
+        "Alex",
+        "Alexis",
+        "Angel",
+        "Bailey",
+        "Darcy",
+        "Darcey",
+        "Genesis",
+        "Kennedy",
+        "Mackenzie",
+        "Morgan",
+        "Peyton",
+        "Sam",
+        "Taylor"
+    ]
+};
 module.exports={
-    readWiiBin:function(binPath){
+    readWiiBin:function(binOrPath){
         var thisMii={
             info:{},
             face:{},
@@ -607,7 +896,12 @@ module.exports={
             glasses:{},
             facialHair:{}
         };
-        binary = fs.readFileSync(binPath);
+        if(binOrPath.test(/[^01]/ig)){
+            binary = fs.readFileSync(binOrPath);
+        }
+        else{
+            binary=Buffer.from(binOrPath);
+        }
         var name="";
         for(var i=0;i<10;i++){
             name+=binary.slice(3+i*2, 4+i*2)+"";
@@ -628,7 +922,7 @@ module.exports={
         thisMii.face.col=wiiSkinColors[parseInt(temp.slice(3,6),2)];//0-5
         temp=getBinaryFromAddress(0x21);
         thisMii.face.feature=wiiFaceFeatures[parseInt(getBinaryFromAddress(0x20).slice(6,8)+temp.slice(0,2),2)];//0-11
-        thisMii.info.mingle=temp[5]==="1"?false:true;//0 for Mingle, 1 for Don't Mingle
+        thisMii.info.mingle=temp[5]==="0";//0 for Mingle, 1 for Don't Mingle
         temp=getBinaryFromAddress(0x2C);
         for(var i=0;i<12;i++){
             if(wiiNoses[i]===parseInt(temp.slice(0,4),2)){
@@ -697,7 +991,7 @@ module.exports={
         thisMii.facialHair.mustacheYPos=parseInt(temp2.slice(3,8),2);//0-16, default 2
         return thisMii;
     },
-    read3DSQR:async function(qrPath){
+    read3DSQR:async function(binOrPath){
         function readMii(){
             var miiJson={
                 info:{},
@@ -808,14 +1102,19 @@ module.exports={
             fs.unlinkSync("./decryptedTemp.3dMii");
             return miiJson;
         }
-        var data=fs.readFileSync(qrPath);
-        var img=await loadImage(data);
-        const canvas = createCanvas(img.width, img.height);
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
-    
+        let qrCode;
+        if(/[^01]/ig.test(binOrPath)){
+            var data=fs.readFileSync(binOrPath);
+            var img=await loadImage(data);
+            const canvas = createCanvas(img.width, img.height);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+        }
+        else{
+            qrCode=binOrPath;
+        }
         if (qrCode) {
             var data = decodeAesCcm(new Uint8Array(qrCode.binaryData));
             fs.writeFileSync("./decryptedTemp.3dMii",Buffer.from(data));
@@ -1213,7 +1512,7 @@ module.exports={
         studioMii[0xA] = mii.eyebrows.squash;
         studioMii[0xC] = mii.eyebrows.rot;
         studioMii[0xF] = mii.eyebrows.distApart;
-        studioMii[0x10] = mii.eyebrows.yPos+3;
+        studioMii[0x10] = mii.eyebrows.yPos;
         studioMii[0x2C] = tables.noses[mii.nose.type[0]][mii.nose.type[1]];
         studioMii[0x2B] = mii.nose.size;
         studioMii[0x2D] = mii.nose.yPos;
@@ -1419,5 +1718,57 @@ module.exports={
             miiTo.mole.yPos=mii.mole.yPos;
         }
         return miiTo;
+    },
+    make3DSChild:function(dad,mom,options={}){
+        var g=options.gender||Math.floor(Math.random()*2)===1?"Male":"Female";
+        var child={
+            "info":{
+                "birthMonth":new Date().getMonth()+1,
+                "birthday":new Date().getDay(),
+                "height":64,
+                "weight":64,
+                "creatorName":"",
+                "gender":g,
+                "name":options.name||kidNames[g][Math.floor(Math.random()*kidNames[g].length)],
+                "favColor":options.favColor||cols3DS[Math.floor(Math.random()*cols3DS.length)]
+            },
+            "perms":{
+                "sharing":true,
+                "copying":true
+            },
+            "hair":{
+                "style":[8,3],
+                "col":Math.floor(Math.random()*2)===1?dad.hair.col:mom.hair.col,
+                "flipped":false
+            },
+            "face":{
+                "shape":Math.floor(Math.random()*2)===1?dad.face.shape:mom.face.shape,
+                "feature":Math.floor(Math.random()*2)===1?dad.face.feature:mom.face.feature,
+                "makeup":g==="Male"?"None":Math.floor(Math.random()*2)===1?dad.face.makeup:mom.face.makeup
+            },
+            "eyes":Math.floor(Math.random()*2)===1?dad.eyes:mom.eyes,
+            "eyebrows":Math.floor(Math.random()*2)===1?dad.eyebrows:mom.eyebrows,
+            "nose":Math.floor(Math.random()*2)===1?dad.nose:mom.nose,
+            "mouth":Math.floor(Math.random()*2)===1?dad.mouth:mom.mouth,
+            "facialHair":g==="Female"?{
+                "mustacheType": 0,
+                "beardType": 0,
+                "col": "Black",
+                "mustacheSize": 4,
+                "mustacheYPos": 10
+            }:dad.facialHair,
+            "glasses":Math.floor(Math.random()*2)===1?dad.glasses:mom.glasses,
+            "mole":Math.floor(Math.random()*2)===1?dad.mole:mom.mole,
+            "creatorName":""
+        };
+        child.eyebrows.col=child.hair.col;
+        var c=[skinCols3DS.indexOf(mom.face.col),skinCols3DS.indexOf(dad.face.col)];
+        if(c[0]>c[1]){
+            c[1]=c[0];
+            c[0]=skinCols3DS.indexOf(dad.face.col);
+        }
+        child.face.col=skinCols3DS[c[0]+Math.round((c[1]-c[0])/2)];
+        child.name=child.info.name;
+        return child;
     }
 }
