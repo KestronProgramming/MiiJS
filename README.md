@@ -1,6 +1,8 @@
 # MiiJS
 Read, Edit, Write, and make Special Miis from a Wiimote binary file or 3DS QR Code to a binary file or QR code
 
+### *#3DS and Wii U Miis function the same, the term 3DS here also applies to the Wii U for everything
+
 ## Installation
 `npm i miijs` OR `npm install miijs`
 
