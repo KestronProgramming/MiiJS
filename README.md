@@ -2,8 +2,7 @@
 Read, Edit, Write, and make Special Miis from a Wiimote binary file or 3DS QR Code to a binary file or QR code
 
 
--# Note: The 3DS and Wii U do the same things with Miis. The Wii U does not however support Special Miis, and so 3DS is the name used for the 3DS/Wii U generation of Miis throughout this project. However, as long as you are not hoping to use Special Miis on the Wii U, as it cannot, the **3DS and Wii U are completely interchangeable** as far as Miis go otherwise.
--# Note: This package is for managing Wii, and 3DS/Wii U Miis.
+Note: The 3DS and Wii U do the same things with Miis. The Wii U does not however support Special Miis, and so 3DS is the name used for the 3DS/Wii U generation of Miis throughout this project. However, as long as you are not hoping to use Special Miis on the Wii U, as it cannot, the **3DS and Wii U are completely interchangeable** as far as Miis go otherwise.
 
 ## Installation
 `npm i miijs` OR `npm install miijs`
