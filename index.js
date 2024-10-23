@@ -82,12 +82,12 @@ function downloadImage(url, filepath) {
         });
     });
 }
-var wiiCols=["Red","Orange","Yellow","Lime","Green","Blue","Cyan","Pink","Purple","Brown","White","Black"];
+var favCols=["Red","Orange","Yellow","Lime","Green","Blue","Cyan","Pink","Purple","Brown","White","Black"];
+var skinCols=["White","Tanned White","Darker White","Tanned Darker","Mostly Black","Black"];
+var hairCols=["Black","Brown","Red","Reddish Brown","Grey","Light Brown","Dark Blonde","Blonde"];
+var eyeCols=["Black","Grey","Brown","Lime","Blue","Green"];
 var wiiFaceFeatures=["None","Blush","Makeup and Blush","Freckles","Bags","Wrinkles on Cheeks","Wrinkles near Eyes","Chin Wrinkle","Makeup","Stubble","Wrinkles near Mouth","Wrinkles"];
-var wiiSkinColors=["White","Tanned White","Darker Skin","Tanned Darker","Mostly Black","Black"];
 var wiiMouthColors=["Peach","Red","Pink"];
-var wiiHairCols=["Black","Dark Brown","Mid Brown","Brown","Grey","Wooden Brown","Dark Blonde","Blonde"];
-var wiiEyeCols=["Black","Grey","Brown","Lime","Blue","Green"];
 var wiiGlassesCols=["Grey","Brown","Red","Blue","Yellow","White"];
 var wiiNoses={
     '0': 1,
@@ -279,12 +279,8 @@ var hairTable={
     '70': '132',
     '71': '633'
 };
-var cols3DS=["Red","Orange","Yellow","Lime","Green","Blue","Cyan","Pink","Purple","Brown","White","Black"];
-var skinCols3DS=["White","Tanned White","Darker White","Tanned Darker","Mostly Black","Black"];
 var faceFeatures3DS=["None","Near Eye Creases","Cheek Creases","Far Eye Creases","Near Nose Creases","Giant Bags","Cleft Chin","Chin Crease","Sunken Eyes","Far Cheek Creases","Lines Near Eyes","Wrinkles"];
 var makeups3DS=["None","Blush","Orange Blush","Blue Eyes","Blush 2","Orange Blush 2","Blue Eyes and Blush","Orange Eyes and Blush","Purple Eyes and Blush 2","Freckles","Beard Stubble","Beard and Mustache Stubble"];
-var eyeCols3DS=["Black","Grey","Brown","Lime","Blue","Green"];
-var hairCols3DS=["Black","Brown","Red","Reddish Brown","Grey","Light Brown","Dark Blonde","Blonde"];
 var mouthCols3DS=["Orange","Red","Pink","Peach","Black"];
 var glassesCols3DS=["Black","Brown","Red","Blue","Yellow","Grey"];
 
@@ -882,6 +878,97 @@ var kidNames={
         "Taylor"
     ]
 };
+var defaultInstrs={
+    wii:{
+        male:{
+            "col": "On the info page (first tab), set the Favorite Color to Red (1 from the left, top row).",
+            "heightWeight": "On the build page (second tab), set the height to 50%, and the weight to 50%.",
+            "faceShape": "On the face page (third tab), set the shape to the one 1 from the top, in the left column.",
+            "skinCol": "On the face page (third tab), set the color to the one 1 from the left, on the top row.",
+            "makeup": "On the face page's makeup tab, set the makeup to \"None\" (the one 1 from the top, and 1 from the left).",
+            "hairStyle": "On the hair page (fourth tab), set the hair style to the one 1 from the left, 1 from the top, on page 1.",
+            "hairFlipped": "",
+            "hairColor": "On the hair page (fourth tab), set the hair color to the one 2 from the left, on the top row.",
+            "eyebrowStyle": "On the eyebrow page (fifth tab), set the eyebrow style to the one 1 from the left, 1 from the top, on page 1.",
+            "eyebrowColor": "On the eyebrow page (fifth tab), set the eyebrow color to the one 2 from the left, on the top row.",
+            "eyebrowY": "",
+            "eyebrowSize": "",
+            "eyebrowRot": "",
+            "eyebrowDist": "",
+            "eyeType": "On the eye page (sixth tab), set the eye type to the one 1 from the left, 1 from the top, on page 1.",
+            "eyeColor": "On the eye page (sixth tab), set the color to the one 1 from the left, on the top row.",
+            "eyeY": "",
+            "eyeSize": "",
+            "eyeRot": "",
+            "eyeDist": "",
+            "noseType": "On the nose page (seventh tab), set the nose to the one 1 from the top, and 1 from the left.",
+            "noseY": "",
+            "noseSize": "",
+            "mouthType": "On the mouth page (eighth tab), set the mouth type to the one 1 from the left, 1 from the top, on page 1.",
+            "mouthCol": "On the mouth page (eighth tab), set the color to the one 1 from the left.",
+            "mouthY": "",
+            "mouthSize": "",
+            "glasses": "On the glasses page (within the ninth tab), set the glasses to the one 1 from the top, and 1 from the left.",
+            "glassesCol": "On the glasses page (within the ninth tab), set the color to the one 1 from the left, on the top row.",
+            "glassesY": "",
+            "glassesSize": "",
+            "stache": "On the mustache page (within the ninth tab), set the mustache to the one on the top-left.",
+            "stacheY": "",
+            "stacheSize": "",
+            "mole": "",
+            "moleX": "",
+            "moleY": "",
+            "moleSize": "",
+            "beard": "On the beard page (within the ninth tab), set the beard to the one on the top-left.",
+            "beardCol": "On the mustache OR beard pages (within the ninth tab), set the color to the one 1 from the left, on the top row."
+        },
+        female:{
+            "col": "On the info page (first tab), set the Favorite Color to Red (1 from the left, top row).",
+            "heightWeight": "On the build page (second tab), set the height to 50%, and the weight to 50%.",
+            "faceShape": "On the face page (third tab), set the shape to the one 1 from the top, in the left column.",
+            "skinCol": "On the face page (third tab), set the color to the one 1 from the left, on the top row.",
+            "makeup": "On the face page's makeup tab, set the makeup to \"None\" (the one 1 from the top, and 1 from the left).",
+            "hairStyle": "On the hair page (fourth tab), set the hair style to the one 1 from the left, 1 from the top, on page 4.",
+            "hairFlipped": "",
+            "hairColor": "On the hair page (fourth tab), set the hair color to the one 2 from the left, on the top row.",
+            "eyebrowStyle": "On the eyebrow page (fifth tab), set the eyebrow style to the one 2 from the left, 1 from the top, on page 1.",
+            "eyebrowColor": "On the eyebrow page (fifth tab), set the eyebrow color to the one 2 from the left, on the top row.",
+            "eyebrowY": "",
+            "eyebrowSize": "",
+            "eyebrowRot": "",
+            "eyebrowDist": "",
+            "eyeType": "On the eye page (sixth tab), set the eye type to the one 2 from the left, 1 from the top, on page 1.",
+            "eyeColor": "On the eye page (sixth tab), set the color to the one 1 from the left, on the top row.",
+            "eyeY": "",
+            "eyeSize": "",
+            "eyeRot": "On the eye page (sixth tab), press the rotate clockwise button 1 times.",
+            "eyeDist": "",
+            "noseType": "On the nose page (seventh tab), set the nose to the one 0 from the top, and 1 from the left.",
+            "noseY": "",
+            "noseSize": "",
+            "mouthType": "On the mouth page (eighth tab), set the mouth type to the one 1 from the left, 1 from the top, on page 1.",
+            "mouthCol": "On the mouth page (eighth tab), set the color to the one 1 from the left.",
+            "mouthY": "",
+            "mouthSize": "",
+            "glasses": "On the glasses page (within the ninth tab), set the glasses to the one 1 from the top, and 1 from the left.",
+            "glassesCol": "On the glasses page (within the ninth tab), set the color to the one 1 from the left, on the top row.",
+            "glassesY": "",
+            "glassesSize": "",
+            "stache": "On the mustache page (within the ninth tab), set the mustache to the one on the top-left.",
+            "stacheY": "",
+            "stacheSize": "",
+            "mole": "",
+            "moleX": "",
+            "moleY": "",
+            "moleSize": "",
+            "beard": "On the beard page (within the ninth tab), set the beard to the one on the top-left.",
+            "beardCol": "On the mustache OR beard pages (within the ninth tab), set the color to the one 1 from the left, on the top row."
+        }
+    },
+    "3ds":{
+
+    }
+};
 module.exports={
     readWiiBin:function(binOrPath){
         var thisMii={
@@ -896,7 +983,7 @@ module.exports={
             glasses:{},
             facialHair:{}
         };
-        if(binOrPath.test(/[^01]/ig)){
+        if(/[^01]/ig.test(binOrPath)){
             binary = fs.readFileSync(binOrPath);
         }
         else{
@@ -919,7 +1006,7 @@ module.exports={
         thisMii.info.systemId=parseInt(getBinaryFromAddress(0x1C),2).toString(16)+parseInt(getBinaryFromAddress(0x1D),2).toString(16)+parseInt(getBinaryFromAddress(0x1E),2).toString(16)+parseInt(getBinaryFromAddress(0x1F),2).toString(16);
         var temp=getBinaryFromAddress(0x20);
         thisMii.face.shape=parseInt(temp.slice(0,3),2);//0-7
-        thisMii.face.col=wiiSkinColors[parseInt(temp.slice(3,6),2)];//0-5
+        thisMii.face.col=skinCols[parseInt(temp.slice(3,6),2)];//0-5
         temp=getBinaryFromAddress(0x21);
         thisMii.face.feature=wiiFaceFeatures[parseInt(getBinaryFromAddress(0x20).slice(6,8)+temp.slice(0,2),2)];//0-11
         thisMii.info.mingle=temp[5]==="0";//0 for Mingle, 1 for Don't Mingle
@@ -930,7 +1017,7 @@ module.exports={
             }
         }
         thisMii.nose.size=parseInt(temp.slice(4,8),2);
-        thisMii.nose.vertPos=parseInt(getBinaryFromAddress(0x2D).slice(0,5),2);//From top to bottom, 0-18, default 9
+        thisMii.nose.yPos=parseInt(getBinaryFromAddress(0x2D).slice(0,5),2);//From top to bottom, 0-18, default 9
         temp=getBinaryFromAddress(0x2E);
         thisMii.mouth.type=mouthTable[""+parseInt(temp.slice(0,5),2)];//0-23, Needs lookup table
         thisMii.mouth.col=wiiMouthColors[parseInt(temp.slice(5,7),2)];//0-2, refer to mouthColors array
@@ -941,7 +1028,7 @@ module.exports={
         var temp2=getBinaryFromAddress(0x01);
         thisMii.info.birthMonth=parseInt(temp.slice(2,6),2);
         thisMii.info.birthday=parseInt(temp.slice(6,8)+temp2.slice(0,3),2);
-        thisMii.info.favColor=wiiCols[parseInt(temp2.slice(3,7),2)];//0-11, refer to cols array
+        thisMii.info.favColor=favCols[parseInt(temp2.slice(3,7),2)];//0-11, refer to cols array
         thisMii.info.favorited=temp2[7]==="0"?false:true;
         thisMii.info.height=parseInt(getBinaryFromAddress(0x16),2);//0-127
         thisMii.info.weight=parseInt(getBinaryFromAddress(0x17),2);//0-127
@@ -955,7 +1042,7 @@ module.exports={
         temp=getBinaryFromAddress(0x22);
         temp2=getBinaryFromAddress(0x23);
         thisMii.hair.type=hairTable[""+parseInt(temp.slice(0,7),2)];//0-71, Needs lookup table
-        thisMii.hair.col=wiiHairCols[parseInt(temp[7]+temp2.slice(0,2),2)];//0-7, refer to hairCols array
+        thisMii.hair.col=hairCols[parseInt(temp[7]+temp2.slice(0,2),2)];//0-7, refer to hairCols array
         thisMii.hair.flipped=temp2[2]==="0"?false:true;
         temp=getBinaryFromAddress(0x24);
         temp2=getBinaryFromAddress(0x25);
@@ -963,7 +1050,7 @@ module.exports={
         thisMii.eyebrows.rotation=parseInt(temp.slice(6,8)+temp2.slice(0,2),2);//0-11, default varies based on eyebrow type
         temp=getBinaryFromAddress(0x26);
         temp2=getBinaryFromAddress(0x27);
-        thisMii.eyebrows.col=wiiHairCols[parseInt(temp.slice(0,3),2)];
+        thisMii.eyebrows.col=hairCols[parseInt(temp.slice(0,3),2)];
         thisMii.eyebrows.size=parseInt(temp.slice(3,7),2);//0-8, default 4
         thisMii.eyebrows.yPos=(parseInt(temp[7]+temp2.slice(0,4),2))-3;//0-15, default 10
         thisMii.eyebrows.distApart=parseInt(temp2.slice(4,8),2);//0-12, default 2
@@ -972,7 +1059,7 @@ module.exports={
         thisMii.eyes.rotation=parseInt(temp.slice(0,3),2);//0-7, default varies based on eye type
         thisMii.eyes.yPos=parseInt(temp.slice(3,8),2);//0-18, default 12, top to bottom
         temp=getBinaryFromAddress(0x2A);
-        thisMii.eyes.col=wiiEyeCols[parseInt(temp.slice(0,3),2)];//0-5
+        thisMii.eyes.col=eyeCols[parseInt(temp.slice(0,3),2)];//0-5
         thisMii.eyes.size=parseInt(temp.slice(4,7),2);//0-7, default 4
         temp2=getBinaryFromAddress(0x2B);
         thisMii.eyes.distApart=parseInt(temp[7]+temp2.slice(0,3),2);//0-12, default 2
@@ -986,7 +1073,7 @@ module.exports={
         temp2=getBinaryFromAddress(0x33);
         thisMii.facialHair.mustacheType=parseInt(temp.slice(0,2),2);//0-3
         thisMii.facialHair.beardType=parseInt(temp.slice(2,4),2);//0-3
-        thisMii.facialHair.col=wiiHairCols[parseInt(temp.slice(4,7),2)];//0-7
+        thisMii.facialHair.col=hairCols[parseInt(temp.slice(4,7),2)];//0-7
         thisMii.facialHair.mustacheSize=parseInt(temp[7]+temp2.slice(0,3),2);//0-30, default 20
         thisMii.facialHair.mustacheYPos=parseInt(temp2.slice(3,8),2);//0-16, default 2
         return thisMii;
@@ -1034,20 +1121,20 @@ module.exports={
             miiJson.info.gender=temp[7]==="1"?"Female":"Male";
             temp=getBinaryFromAddress(0x30);
             miiJson.perms.sharing=temp[7]==="1"?false:true;
-            miiJson.info.favColor=cols3DS[parseInt(temp2.slice(2,6),2)];
+            miiJson.info.favColor=favCols[parseInt(temp2.slice(2,6),2)];
             miiJson.perms.copying=getBinaryFromAddress(0x01)[7]==="1"?true:false;
             miiJson.hair.style=lookupTable("hairs",parseInt(getBinaryFromAddress(0x32),2),true);
             miiJson.face.shape=lookupTable("faces",parseInt(temp.slice(3,7),2),false);
-            miiJson.face.col=skinCols3DS[parseInt(temp.slice(0,3),2)];
+            miiJson.face.col=skinCols[parseInt(temp.slice(0,3),2)];
             temp=getBinaryFromAddress(0x31);
             miiJson.face.feature=faceFeatures3DS[parseInt(temp.slice(4,8),2)];
             miiJson.face.makeup=makeups3DS[parseInt(temp.slice(0,4),2)];
             temp=getBinaryFromAddress(0x34);
             miiJson.eyes.type=lookupTable("eyes",parseInt(temp.slice(2,8),2),true);
             temp2=getBinaryFromAddress(0x33);
-            miiJson.hair.col=hairCols3DS[parseInt(temp2.slice(5,8),2)];
+            miiJson.hair.col=hairCols[parseInt(temp2.slice(5,8),2)];
             miiJson.hair.flipped=temp2[4]==="0"?false:true;
-            miiJson.eyes.col=eyeCols3DS[parseInt(getBinaryFromAddress(0x35)[7]+temp.slice(0,2),2)];
+            miiJson.eyes.col=eyeCols[parseInt(getBinaryFromAddress(0x35)[7]+temp.slice(0,2),2)];
             temp=getBinaryFromAddress(0x35);
             miiJson.eyes.size=parseInt(temp.slice(3,7),2);
             miiJson.eyes.squash=parseInt(temp.slice(0,3),2);
@@ -1058,7 +1145,7 @@ module.exports={
             miiJson.eyes.yPos=parseInt(temp2.slice(2,7),2);
             temp=getBinaryFromAddress(0x38);
             miiJson.eyebrows.style=lookupTable("eyebrows",parseInt(temp.slice(3,8),2),true);
-            miiJson.eyebrows.col=hairCols3DS[parseInt(temp.slice(0,3),2)];
+            miiJson.eyebrows.col=hairCols[parseInt(temp.slice(0,3),2)];
             temp=getBinaryFromAddress(0x39);
             miiJson.eyebrows.size=parseInt(temp.slice(4,8),2);
             miiJson.eyebrows.squash=parseInt(temp.slice(1,4),2);
@@ -1083,7 +1170,7 @@ module.exports={
             miiJson.facialHair.mustacheType=parseInt(temp.slice(0,3),2);
             temp=getBinaryFromAddress(0x42);
             miiJson.facialHair.beardType=parseInt(temp.slice(5,8),2);
-            miiJson.facialHair.col=hairCols3DS[parseInt(temp.slice(2,5),2)];
+            miiJson.facialHair.col=hairCols[parseInt(temp.slice(2,5),2)];
             temp2=getBinaryFromAddress(0x43);
             miiJson.facialHair.mustacheSize=parseInt(temp2.slice(6,8)+temp.slice(0,2),2);
             miiJson.facialHair.mustacheYPos=parseInt(temp2.slice(1,6),2);
@@ -1110,13 +1197,17 @@ module.exports={
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+            qrCode = jsQR(imageData.data, imageData.width, imageData.height).binaryData;
         }
         else{
-            qrCode=binOrPath;
+            var d=binOrPath.match(/(0|1){1,8}/g);
+            qrCode=[];
+            d.forEach(byte=>{
+                qrCode.push(parseInt(byte,2));
+            });
         }
         if (qrCode) {
-            var data = decodeAesCcm(new Uint8Array(qrCode.binaryData));
+            var data = decodeAesCcm(new Uint8Array(qrCode));
             fs.writeFileSync("./decryptedTemp.3dMii",Buffer.from(data));
             return Promise.resolve(readMii());
         } else {
@@ -1129,7 +1220,7 @@ module.exports={
         miiBin+=mii.info.gender==="Male"?"0":"1";
         miiBin+=mii.info.birthMonth.toString(2).padStart(4,"0");
         miiBin+=mii.info.birthday.toString(2).padStart(5,"0");
-        miiBin+=wiiCols.indexOf(mii.info.favColor).toString(2).padStart(4,"0");
+        miiBin+=favCols.indexOf(mii.info.favColor).toString(2).padStart(4,"0");
         miiBin+=mii.info.favorited?1:0;
         for(var i=0;i<10;i++){
             miiBin+="00000000";
@@ -1160,24 +1251,25 @@ module.exports={
         miiBin+=miiId;
         miiBin+="11111111".repeat(4);//System ID
         miiBin+=mii.face.shape.toString(2).padStart(3,"0");
-        miiBin+=wiiSkinColors.indexOf(mii.face.col).toString(2).padStart(3,"0");
+        miiBin+=skinCols.indexOf(mii.face.col).toString(2).padStart(3,"0");
         miiBin+=wiiFaceFeatures.indexOf(mii.face.feature).toString(2).padStart(4,"0");
         miiBin+="000";
         if(mii.info.mingle&&mii.info.type==="Special"){
+            mii.info.mingle=false;
             console.error("A Special Mii cannot have Mingle on and still render on the Wii. Turned Mingle off in the output file.");
         }
         miiBin+=mii.info.mingle?"0":"1";
         miiBin+="0";
         miiBin+=mii.info.downloadedFromCheckMiiOut?"1":"0";
         miiBin+=(+getKeyByValue(hairTable,mii.hair.type)).toString(2).padStart(7,"0");
-        miiBin+=wiiHairCols.indexOf(mii.hair.col).toString(2).padStart(3,"0");
+        miiBin+=hairCols.indexOf(mii.hair.col).toString(2).padStart(3,"0");
         miiBin+=mii.hair.flipped?"1":"0";
         miiBin+="00000";
         miiBin+=(+getKeyByValue(eyebrowTable,mii.eyebrows.type)).toString(2).padStart(5,"0");
         miiBin+="0";
         miiBin+=mii.eyebrows.rotation.toString(2).padStart(4,"0");
         miiBin+="000000";
-        miiBin+=wiiHairCols.indexOf(mii.eyebrows.col).toString(2).padStart(3,"0");
+        miiBin+=hairCols.indexOf(mii.eyebrows.col).toString(2).padStart(3,"0");
         miiBin+=mii.eyebrows.size.toString(2).padStart(4,"0");
         miiBin+=(mii.eyebrows.yPos+3).toString(2).padStart(5,"0");
         miiBin+=mii.eyebrows.distApart.toString(2).padStart(4,"0");
@@ -1185,14 +1277,14 @@ module.exports={
         miiBin+="00";
         miiBin+=mii.eyes.rotation.toString(2).padStart(3,"0");
         miiBin+=mii.eyes.yPos.toString(2).padStart(5,"0");
-        miiBin+=wiiEyeCols.indexOf(mii.eyes.col).toString(2).padStart(3,"0");
+        miiBin+=eyeCols.indexOf(mii.eyes.col).toString(2).padStart(3,"0");
         miiBin+="0";
         miiBin+=mii.eyes.size.toString(2).padStart(3,"0");
         miiBin+=mii.eyes.distApart.toString(2).padStart(4,"0");
         miiBin+="00000";
         miiBin+=wiiNoses[mii.nose.type].toString(2).padStart(4,"0");
         miiBin+=mii.nose.size.toString(2).padStart(4,"0");
-        miiBin+=mii.nose.vertPos.toString(2).padStart(5,"0");
+        miiBin+=mii.nose.yPos.toString(2).padStart(5,"0");
         miiBin+="000";
         miiBin+=(+getKeyByValue(mouthTable,mii.mouth.type)).toString(2).padStart(5,"0");
         miiBin+=wiiMouthColors.indexOf(mii.mouth.col).toString(2).padStart(2,"0");
@@ -1205,7 +1297,7 @@ module.exports={
         miiBin+=mii.glasses.yPos.toString(2).padStart(5,"0");
         miiBin+=mii.facialHair.mustacheType.toString(2).padStart(2,"0");
         miiBin+=mii.facialHair.beardType.toString(2).padStart(2,"0");
-        miiBin+=wiiHairCols.indexOf(mii.facialHair.col).toString(2).padStart(3,"0");
+        miiBin+=hairCols.indexOf(mii.facialHair.col).toString(2).padStart(3,"0");
         miiBin+=mii.facialHair.mustacheSize.toString(2).padStart(4,"0");
         miiBin+=mii.facialHair.mustacheYPos.toString(2).padStart(5,"0");
         miiBin+=mii.mole.on?"1":"0";
@@ -1229,8 +1321,7 @@ module.exports={
         for(var i=0;i<toWrite.length;i++){
             buffers.push(parseInt(toWrite[i],2));
         }
-        const buffer = Buffer.from(buffers);
-        fs.writeFileSync(outPath, buffer);
+        fs.writeFileSync(outPath, Buffer.from(buffers));
     },
     write3DSQR:function(jsonIn,outPath){
         var mii=jsonIn;
@@ -1255,7 +1346,7 @@ module.exports={
             miiBin+=mii.info.birthMonth.toString(2).padStart(4,"0");
             miiBin+=mii.info.gender==="Male"?"0":"1";
             miiBin+="00";
-            miiBin+=cols3DS.indexOf(mii.info.favColor).toString(2).padStart(4,"0");
+            miiBin+=favCols.indexOf(mii.info.favColor).toString(2).padStart(4,"0");
             miiBin+=mii.info.birthday.toString(2).padStart(5,"0").slice(0,2);
             for(var i=0;i<10;i++){
                 if(i<mii.name.length){
@@ -1268,7 +1359,7 @@ module.exports={
             }
             miiBin+=mii.info.height.toString(2).padStart(8,"0");
             miiBin+=mii.info.weight.toString(2).padStart(8,"0");
-            miiBin+=skinCols3DS.indexOf(mii.face.col).toString(2).padStart(3,"0");
+            miiBin+=skinCols.indexOf(mii.face.col).toString(2).padStart(3,"0");
             miiBin+=tables.faces[mii.face.shape].toString(2).padStart(4,"0");
             miiBin+=mii.perms.sharing?"0":"1";
             miiBin+=makeups3DS.indexOf(mii.face.makeup).toString(2).padStart(4,"0");
@@ -1276,18 +1367,18 @@ module.exports={
             miiBin+=tables.hairs[mii.hair.style[0]][mii.hair.style[1]].toString(2).padStart(8,"0");
             miiBin+="0000";
             miiBin+=mii.hair.flipped?"1":"0";
-            miiBin+=hairCols3DS.indexOf(mii.hair.col).toString(2).padStart(3,"0");
-            miiBin+=eyeCols3DS.indexOf(mii.eyes.col).toString(2).padStart(3,"0").slice(1,3);
+            miiBin+=hairCols.indexOf(mii.hair.col).toString(2).padStart(3,"0");
+            miiBin+=eyeCols.indexOf(mii.eyes.col).toString(2).padStart(3,"0").slice(1,3);
             miiBin+=tables.eyes[mii.eyes.type[0]][mii.eyes.type[1]].toString(2).padStart(6,"0");
             miiBin+=mii.eyes.squash.toString(2).padStart(3,"0");
             miiBin+=mii.eyes.size.toString(2).padStart(4,"0");
-            miiBin+=eyeCols3DS.indexOf(mii.eyes.col).toString(2).padStart(3,"0")[0];
+            miiBin+=eyeCols.indexOf(mii.eyes.col).toString(2).padStart(3,"0")[0];
             miiBin+=mii.eyes.distApart.toString(2).padStart(4,"0").slice(1,4);
             miiBin+=mii.eyes.rot.toString(2).padStart(5,"0");
             miiBin+="00";
             miiBin+=mii.eyes.yPos.toString(2).padStart(5,"0");
             miiBin+=mii.eyes.distApart.toString(2).padStart(4,"0")[0];
-            miiBin+=hairCols3DS.indexOf(mii.eyebrows.col).toString(2).padStart(3,"0");
+            miiBin+=hairCols.indexOf(mii.eyebrows.col).toString(2).padStart(3,"0");
             miiBin+=tables.eyebrows[mii.eyebrows.style[0]][mii.eyebrows.style[1]].toString(2).padStart(5,"0");
             miiBin+="0";
             miiBin+=mii.eyebrows.squash.toString(2).padStart(3,"0");
@@ -1312,7 +1403,7 @@ module.exports={
             miiBin+=mii.mouth.yPos.toString(2).padStart(5,"0");
             miiBin+="00000000";
             miiBin+=mii.facialHair.mustacheSize.toString(2).padStart(4,"0").slice(2,4);
-            miiBin+=hairCols3DS.indexOf(mii.facialHair.col).toString(2).padStart(3,"0");
+            miiBin+=hairCols.indexOf(mii.facialHair.col).toString(2).padStart(3,"0");
             miiBin+=mii.facialHair.beardType.toString(2).padStart(3,"0");
             miiBin+="0";
             miiBin+=mii.facialHair.mustacheYPos.toString(2).padStart(5,"0");
@@ -1372,26 +1463,26 @@ module.exports={
             return dest;
         }
         studioMii[0x16] = mii.info.gender==="Male"?0:1;
-        studioMii[0x15] = cols3DS.indexOf(mii.info.favColor);
+        studioMii[0x15] = favCols.indexOf(mii.info.favColor);
         studioMii[0x1E] = mii.info.height;
         studioMii[2] = mii.info.weight;
         studioMii[0x13] = tables.faces[mii.face.shape];
-        studioMii[0x11] = skinCols3DS.indexOf(mii.face.col);
+        studioMii[0x11] = skinCols.indexOf(mii.face.col);
         studioMii[0x14] = faceFeatures3DS.indexOf(mii.face.feature);
         studioMii[0x12] = makeups3DS.indexOf(mii.face.makeup);
         studioMii[0x1D] = tables.hairs[mii.hair.style[0]][mii.hair.style[1]];
-        studioMii[0x1B] = hairCols3DS.indexOf(mii.hair.col);
+        studioMii[0x1B] = hairCols.indexOf(mii.hair.col);
         if (!studioMii[0x1B]) studioMii[0x1B] = 8;
         studioMii[0x1C] = mii.hair.flipped?1:0;
         studioMii[7] = tables.eyes[mii.eyes.type[0]][mii.eyes.type[1]];
-        studioMii[4] = eyeCols3DS.indexOf(mii.eyes.col) + 8;
+        studioMii[4] = eyeCols.indexOf(mii.eyes.col) + 8;
         studioMii[6] = mii.eyes.size;
         studioMii[3] = mii.eyes.squash;
         studioMii[5] = mii.eyes.rot;
         studioMii[8] = mii.eyes.distApart;
         studioMii[9] = mii.eyes.yPos;
         studioMii[0xE] = tables.eyebrows[mii.eyebrows.style[0]][mii.eyebrows.style[1]];
-        studioMii[0xB] = hairCols3DS.indexOf(mii.eyebrows.col);
+        studioMii[0xB] = hairCols.indexOf(mii.eyebrows.col);
         if (!studioMii[0xB]) studioMii[0xB] = 8;
         studioMii[0xD] = mii.eyebrows.size;
         studioMii[0xA] = mii.eyebrows.squash;
@@ -1413,7 +1504,7 @@ module.exports={
         studioMii[0x27] = mii.mouth.yPos;
         studioMii[0x29] = mii.facialHair.mustacheType;
         studioMii[1] = mii.facialHair.beardType;
-        studioMii[0] = hairCols3DS.indexOf(mii.facialHair.col);
+        studioMii[0] = hairCols.indexOf(mii.facialHair.col);
         if (!studioMii[0]) studioMii[0] = 8;
         studioMii[0x28] = mii.facialHair.mustacheSize;
         studioMii[0x2A] = mii.facialHair.mustacheYPos;
@@ -1487,32 +1578,32 @@ module.exports={
             return dest;
         }
         studioMii[0x16] = mii.info.gender==="Male"?0:1;
-        studioMii[0x15] = cols3DS.indexOf(mii.info.favColor);
+        studioMii[0x15] = favCols.indexOf(mii.info.favColor);
         studioMii[0x1E] = mii.info.height;
         studioMii[2] = mii.info.weight;
         studioMii[0x13] = tables.faces[mii.face.shape];
-        studioMii[0x11] = skinCols3DS.indexOf(mii.face.col);
+        studioMii[0x11] = skinCols.indexOf(mii.face.col);
         studioMii[0x14] = faceFeatures3DS.indexOf(mii.face.feature);
         studioMii[0x12] = makeups3DS.indexOf(mii.face.makeup);
         studioMii[0x1D] = tables.hairs[mii.hair.style[0]][mii.hair.style[1]];
-        studioMii[0x1B] = hairCols3DS.indexOf(mii.hair.col);
+        studioMii[0x1B] = hairCols.indexOf(mii.hair.col);
         if (!studioMii[0x1B]) studioMii[0x1B] = 8;
         studioMii[0x1C] = mii.hair.flipped?1:0;
         studioMii[7] = tables.eyes[mii.eyes.type[0]][mii.eyes.type[1]];
-        studioMii[4] = eyeCols3DS.indexOf(mii.eyes.col) + 8;
+        studioMii[4] = eyeCols.indexOf(mii.eyes.col) + 8;
         studioMii[6] = mii.eyes.size;
         studioMii[3] = mii.eyes.squash;
         studioMii[5] = mii.eyes.rot;
         studioMii[8] = mii.eyes.distApart;
         studioMii[9] = mii.eyes.yPos;
         studioMii[0xE] = tables.eyebrows[mii.eyebrows.style[0]][mii.eyebrows.style[1]];
-        studioMii[0xB] = hairCols3DS.indexOf(mii.eyebrows.col);
+        studioMii[0xB] = hairCols.indexOf(mii.eyebrows.col);
         if (!studioMii[0xB]) studioMii[0xB] = 8;
         studioMii[0xD] = mii.eyebrows.size;
         studioMii[0xA] = mii.eyebrows.squash;
         studioMii[0xC] = mii.eyebrows.rot;
         studioMii[0xF] = mii.eyebrows.distApart;
-        studioMii[0x10] = mii.eyebrows.yPos;
+        studioMii[0x10] = mii.eyebrows.yPos+3;
         studioMii[0x2C] = tables.noses[mii.nose.type[0]][mii.nose.type[1]];
         studioMii[0x2B] = mii.nose.size;
         studioMii[0x2D] = mii.nose.yPos;
@@ -1528,12 +1619,12 @@ module.exports={
         studioMii[0x27] = mii.mouth.yPos;
         studioMii[0x29] = mii.facialHair.mustacheType;
         studioMii[1] = mii.facialHair.beardType;
-        studioMii[0] = hairCols3DS.indexOf(mii.facialHair.col);
+        studioMii[0] = hairCols.indexOf(mii.facialHair.col);
         if (!studioMii[0]) studioMii[0] = 8;
         studioMii[0x28] = mii.facialHair.mustacheSize;
         studioMii[0x2A] = mii.facialHair.mustacheYPos;
         studioMii[0x19] = mii.glasses.type;
-        studioMii[0x17] = mii.glasses.col;
+        studioMii[0x17] = glassesCols3DS.indexOf(mii.glasses.col);
         if (!studioMii[0x17]) {
             studioMii[0x17] = 8;
         } else if (studioMii[0x17] < 6) {
@@ -1607,7 +1698,7 @@ module.exports={
             }
             miiTo.nose.type=convTables.nose3DSToWii[mii.nose.type[0]][mii.nose.type[1]];
             miiTo.nose.size=mii.nose.size;
-            miiTo.nose.vertPos=mii.nose.yPos;
+            miiTo.nose.yPos=mii.nose.yPos;
             miiTo.mouth.type=convTables.mouth3DSToWii[mii.mouth.type[0]][mii.mouth.type[1]];
             miiTo.mouth.col=wiiMouthColors[mouthCols3DS.indexOf(mii.mouth.col)>2?0:mouthCols3DS.indexOf(mii.mouth.col)];
             miiTo.mouth.size=mii.mouth.size;
@@ -1638,7 +1729,7 @@ module.exports={
                 miiTo.facialHair.mustacheType=0;
                 miiTo.facialHair.beardType=1;
             }
-            if(mii.facialHair.beardType>4){
+            if(mii.facialHair.beardType>3){
                 mii.facialHair.beardType=3;
             }
         }
@@ -1668,11 +1759,11 @@ module.exports={
             miiTo.info.gender=mii.info.gender;
             miiTo.perms.sharing=mii.info.mingle;
             miiTo.perms.copying=mii.info.mingle;
-            miiTo.hair.col=hairCols3DS[wiiHairCols.indexOf(mii.hair.col)];
+            miiTo.hair.col=hairCols[hairCols.indexOf(mii.hair.col)];
             miiTo.hair.flipped=mii.hair.flipped;
             miiTo.hair.style=convTables.hairWiiTo3DS[+mii.hair.type[0]-1][0+(3*(+mii.hair.type[2]-1))+(+mii.hair.type[1]-1)];
             miiTo.face.shape=convTables.faceWiiTo3DS[mii.face.shape];
-            miiTo.face.col=skinCols3DS[wiiSkinColors.indexOf(mii.face.col)];
+            miiTo.face.col=skinCols[skinCols.indexOf(mii.face.col)];
             miiTo.face.makeup="None";
             miiTo.face.feature="None";
             if(typeof(convTables.featureWiiTo3DS[wiiFaceFeatures.indexOf(mii.face.feature)])==='string'){
@@ -1681,7 +1772,7 @@ module.exports={
             else{
                 miiTo.face.feature=faceFeatures3DS[convTables.featureWiiTo3DS[wiiFaceFeatures.indexOf(mii.face.feature)]];
             }
-            miiTo.eyes.col=eyeCols3DS[wiiEyeCols.indexOf(mii.eyes.col)];
+            miiTo.eyes.col=eyeCols[eyeCols.indexOf(mii.eyes.col)];
             miiTo.eyes.type=[+mii.eyes.type[0]-1,(+mii.eyes.type[1]-1)+(3*(+mii.eyes.type[2]-1))];
             miiTo.eyes.size=mii.eyes.size;
             miiTo.eyes.squash=3;
@@ -1689,7 +1780,7 @@ module.exports={
             miiTo.eyes.distApart=mii.eyes.distApart;
             miiTo.eyes.yPos=mii.eyes.yPos;
             miiTo.eyebrows.style=[+mii.eyebrows.type[0]-1,(+mii.eyebrows.type[1]-1)+(3*(+mii.eyebrows.type[2]-1))];
-            miiTo.eyebrows.col=hairCols3DS[wiiHairCols.indexOf(mii.eyebrows.col)];
+            miiTo.eyebrows.col=hairCols[hairCols.indexOf(mii.eyebrows.col)];
             miiTo.eyebrows.size=mii.eyebrows.size;
             miiTo.eyebrows.squash=3;
             miiTo.eyebrows.rot=mii.eyebrows.rotation;
@@ -1697,7 +1788,7 @@ module.exports={
             miiTo.eyebrows.yPos=mii.eyebrows.yPos;
             miiTo.nose.type=[0,mii.nose.type];
             miiTo.nose.size=mii.nose.size;
-            miiTo.nose.yPos=mii.nose.vertPos;
+            miiTo.nose.yPos=mii.nose.yPos;
             miiTo.mouth.type=[+mii.mouth.type[0]-1,(+mii.mouth.type[1]-1)+(3*(+mii.mouth.type[2]-1))];
             miiTo.mouth.col=mouthCols3DS[wiiMouthColors.indexOf(mii.mouth.col)];
             miiTo.mouth.size=mii.mouth.size;
@@ -1705,11 +1796,11 @@ module.exports={
             miiTo.mouth.yPos=mii.mouth.yPos;
             miiTo.facialHair.mustacheType=mii.facialHair.mustacheType;
             miiTo.facialHair.beardType=mii.facialHair.beardType;
-            miiTo.facialHair.col=hairCols3DS[wiiHairCols.indexOf(mii.facialHair.col)];
+            miiTo.facialHair.col=hairCols[hairCols.indexOf(mii.facialHair.col)];
             miiTo.facialHair.mustacheSize=mii.facialHair.mustacheSize;
             miiTo.facialHair.mustacheYPos=mii.facialHair.mustacheYPos;
             miiTo.glasses.type=mii.glasses.type;
-            miiTo.glasses.col=glassesCols3DS[wiiGlassesCols.indexOf(mii.glasses.col)];
+            miiTo.glasses.col=glassesCols3DS[["Grey","Brown","Red","Blue","Yellow","White"].indexOf(mii.glasses.col)];
             miiTo.glasses.size=mii.glasses.size;
             miiTo.glasses.yPos=mii.glasses.yPos;
             miiTo.mole.on=mii.mole.on;
@@ -1730,16 +1821,16 @@ module.exports={
                 "creatorName":"",
                 "gender":g,
                 "name":options.name||kidNames[g][Math.floor(Math.random()*kidNames[g].length)],
-                "favColor":options.favColor||cols3DS[Math.floor(Math.random()*cols3DS.length)]
+                "favColor":options.favColor||favCols[Math.floor(Math.random()*favCols.length)]
             },
             "perms":{
                 "sharing":true,
                 "copying":true
             },
             "hair":{
-                "style":[8,3],
+                "style":[8,3],//Hardcoded
                 "col":Math.floor(Math.random()*2)===1?dad.hair.col:mom.hair.col,
-                "flipped":false
+                "flipped":Math.floor(Math.random()*2)===0?true:false
             },
             "face":{
                 "shape":Math.floor(Math.random()*2)===1?dad.face.shape:mom.face.shape,
@@ -1756,19 +1847,135 @@ module.exports={
                 "col": "Black",
                 "mustacheSize": 4,
                 "mustacheYPos": 10
-            }:dad.facialHair,
+            }:Math.floor(Math.random()*2)===0?dad.facialHair:mom.facialHair,
             "glasses":Math.floor(Math.random()*2)===1?dad.glasses:mom.glasses,
             "mole":Math.floor(Math.random()*2)===1?dad.mole:mom.mole,
             "creatorName":""
         };
         child.eyebrows.col=child.hair.col;
-        var c=[skinCols3DS.indexOf(mom.face.col),skinCols3DS.indexOf(dad.face.col)];
+        var c=[skinCols.indexOf(mom.face.col),skinCols.indexOf(dad.face.col)];
         if(c[0]>c[1]){
             c[1]=c[0];
-            c[0]=skinCols3DS.indexOf(dad.face.col);
+            c[0]=skinCols.indexOf(dad.face.col);
         }
-        child.face.col=skinCols3DS[c[0]+Math.round((c[1]-c[0])/2)];
+        child.face.col=skinCols[c[0]+Math.round((c[1]-c[0])/2)];
         child.name=child.info.name;
         return child;
+    },
+    generateInstructions:function(mii,type,full){
+        if(type.toLowerCase()==="wii"){
+            var instrs={
+                "base":`Select "${mii.info.gender}", and then "Start from Scratch".`,
+                "col":`On the info page (first tab), set the Favorite Color to ${mii.info.favColor} (${favCols.indexOf(mii.info.favColor)<=5?favCols.indexOf(mii.info.favColor)+1:favCols.indexOf(mii.info.favColor)-5} from the left, ${favCols.indexOf(mii.info.favColor)>5?"bottom":"top"} row).`,
+                "heightWeight":`On the build page (second tab), set the height to ${Math.round((100/128)*mii.info.height)}%, and the weight to ${Math.round((100/128)*mii.info.weight)}%.`,
+                "faceShape":`On the face page (third tab), set the shape to the one ${Math.floor(mii.face.shape/2)+1} from the top, in the ${mii.face.shape%2===0?"left":"right"} column.`,
+                "skinCol":`On the face page (third tab), set the color to the one ${skinCols.indexOf(mii.face.col)+skinCols.indexOf(mii.face.col)>2?-2:1} from the left, on the ${skinCols.indexOf(mii.face.col)>2?`bottom`:`top`} row.`,
+                "makeup":`On the face page's makeup tab, set the makeup to \"${mii.face.feature}\" (the one ${Math.ceil((wiiFaceFeatures.indexOf(mii.face.feature)+1)/3)} from the top, and ${[1,2,3,1,2,3,1,2,3,1,2,3][wiiFaceFeatures.indexOf(mii.face.feature)]} from the left).`,
+                "hairStyle":`On the hair page (fourth tab), set the hair style to the one ${mii.hair.type[1]} from the left, ${mii.hair.type[2]} from the top, on page ${mii.hair.type[0]}.`,
+                "hairFlipped":`${mii.hair.flipped?`On the hair page (fourth tab), press the button to flip the hair.`:``}`,
+                "hairColor":`On the hair page (fourth tab), set the hair color to the one ${hairCols.indexOf(mii.hair.col)+(hairCols.indexOf(mii.hair.col)>3?-3:1)} from the left, on the ${hairCols.indexOf(mii.hair.col)>3?`bottom`:`top`} row.`,
+                "eyebrowStyle":`On the eyebrow page (fifth tab), set the eyebrow style to the one ${mii.eyebrows.type[1]} from the left, ${mii.eyebrows.type[2]} from the top, on page ${mii.eyebrows.type[0]}.`,
+                "eyebrowColor":`On the eyebrow page (fifth tab), set the eyebrow color to the one ${hairCols.indexOf(mii.eyebrows.col)+(hairCols.indexOf(mii.eyebrows.col)>3?-3:1)} from the left, on the ${hairCols.indexOf(mii.eyebrows.col)>3?`bottom`:`top`} row.`,
+                "eyebrowY":`${mii.eyebrows.yPos!==7?`On the eyebrow page (fifth tab), `:``}${mii.eyebrows.yPos<7?`press the up button ${7-mii.eyebrows.yPos} times.`:mii.eyebrows.yPos>7?`press the down button ${mii.eyebrows.yPos-7} times.`:``}`,
+                "eyebrowSize":`${mii.eyebrows.size!==4?`On the eyebrow page (fifth tab), `:``}${mii.eyebrows.size<4?`press the shrink button ${4-mii.eyebrows.size} times.`:mii.eyebrows.size>4?`press the enlarge button ${mii.eyebrows.size-4} times.`:``}`,
+                "eyebrowRot":`${mii.eyebrows.rotation!==6?`On the eyebrow page (fifth tab), `:``}${mii.eyebrows.rotation<6?`press the rotate clockwise button ${6-mii.eyebrows.rotation} times.`:mii.eyebrows.rotation>6?`press the rotate counter-clockwise button ${mii.eyebrows.rotation-6} times.`:``}`,
+                "eyebrowDist":`${mii.eyebrows.distApart!==2?`On the eyebrow page (fifth tab), `:``}${mii.eyebrows.distApart<2?`press the closer-together button ${2-mii.eyebrows.distApart} times.`:mii.eyebrows.distApart>2?`press the further-apart button ${mii.eyebrows.distApart-2} times.`:``}`,
+                "eyeType":`On the eye page (sixth tab), set the eye type to the one ${mii.eyes.type[1]} from the left, ${mii.eyes.type[2]} from the top, on page ${mii.eyes.type[0]}.`,
+                "eyeColor":`On the eye page (sixth tab), set the color to the one ${eyeCols.indexOf(mii.eyes.col)+(eyeCols.indexOf(mii.eyes.col)>2?-2:1)} from the left, on the ${eyeCols.indexOf(mii.eyes.col)>2?`bottom`:`top`} row.`,
+                "eyeY":`${mii.eyes.yPos!==12?`On the eye page (sixth tab), `:``}${mii.eyes.yPos<12?`press the up button ${12-mii.eyes.yPos} times.`:mii.eyes.yPos>12?`press the down button ${mii.eyes.yPos-12} times.`:``}`,
+                "eyeSize":`${mii.eyes.size!==4?`On the eye page (sixth tab), `:``}${mii.eyes.size<4?`press the shrink button ${4-mii.eyes.size} times.`:mii.eyes.size>4?`press the enlarge button ${mii.eyes.size-4} times.`:``}`,
+                "eyeRot":`${mii.eyes.rotation!==(mii.info.gender==="Female"?3:4)?`On the eye page (sixth tab), `:``}${mii.eyes.rotation<(mii.info.gender==="Female"?3:4)?`press the rotate clockwise button ${(mii.info.gender==="Female"?3:4)-mii.eyes.rotation} times.`:mii.eyes.rotation>(mii.info.gender==="Female"?3:4)?`press the rotate counter-clockwise button ${mii.eyes.rotation-(mii.info.gender==="Female"?3:4)} times.`:``}`,
+                "eyeDist":`${mii.eyes.distApart!==2?`On the eye page (sixth tab), `:``}${mii.eyes.distApart<2?`press the closer-together button ${2-mii.eyes.distApart} times.`:mii.eyes.distApart>2?`press the further-apart button ${mii.eyes.distApart-2} times.`:``}`,
+                "noseType":`On the nose page (seventh tab), set the nose to the one ${Math.ceil((mii.nose.type+1)/3)} from the top, and ${[1,2,3,1,2,3,1,2,3,1,2,3][mii.nose.type]} from the left.`,
+                "noseY":`${mii.nose.yPos!==9?`On the nose page (seventh tab), `:``}${mii.nose.yPos<9?`press the up button ${9-mii.nose.yPos} times.`:mii.nose.yPos>9?`press the down button ${mii.nose.yPos-9} times.`:``}`,
+                "noseSize":`${mii.nose.size!==4?`On the nose page (seventh tab), `:``}${mii.nose.size<4?`press the shrink button ${4-mii.nose.size} times.`:mii.nose.size>4?`press the enlarge button ${mii.nose.size-4} times.`:``}`,
+                "mouthType":`On the mouth page (eighth tab), set the mouth type to the one ${mii.mouth.type[1]} from the left, ${mii.mouth.type[2]} from the top, on page ${mii.mouth.type[0]}.`,
+                "mouthCol":`On the mouth page (eighth tab), set the color to the one ${wiiMouthColors.indexOf(mii.mouth.col)+1} from the left.`,
+                "mouthY":`${mii.mouth.yPos!==13?`On the mouth page (eighth tab), `:``}${mii.mouth.yPos<13?`press the up button ${13-mii.mouth.yPos} times.`:mii.mouth.yPos>13?`press the down button ${mii.mouth.yPos-13} times.`:``}`,
+                "mouthSize":`${mii.mouth.size!==4?`On the mouth page (eighth tab), `:``}${mii.mouth.size<4?`press the shrink button ${4-mii.mouth.size} times.`:mii.mouth.size>4?`press the enlarge button ${mii.mouth.size-4} times.`:``}`,
+                "glasses":`On the glasses page (within the ninth tab), set the glasses to the one ${Math.ceil((mii.glasses.type+1)/3)} from the top, and ${[1,2,3,1,2,3,1,2,3,1,2,3][mii.glasses.type]} from the left.`,
+                "glassesCol":`On the glasses page (within the ninth tab), set the color to the one ${wiiGlassesCols.indexOf(mii.glasses.col)+(wiiGlassesCols.indexOf(mii.glasses.col)>2?-2:1)} from the left, on the ${wiiGlassesCols.indexOf(mii.glasses.col)>2?`bottom`:`top`} row.`,
+                "glassesY":`${mii.glasses.yPos!==10?`On the glasses page (within the ninth tab), `:``}${mii.glasses.yPos<10?`press the up button ${10-mii.glasses.yPos} times.`:mii.glasses.yPos>10?`press the down button ${mii.glasses.yPos-10} times.`:``}`,
+                "glassesSize":`${mii.glasses.size!==4?`On the glasses page (within the ninth tab), `:``}${mii.glasses.size<4?`press the shrink button ${4-mii.glasses.size} times.`:mii.glasses.size>4?`press the enlarge button ${mii.glasses.size-4} times.`:``}`,
+                "stache":`On the mustache page (within the ninth tab), set the mustache to the one on the ${[0,1].includes(mii.facialHair.mustacheType)?`top`:`bottom`}-${[0,2].includes(mii.facialHair.mustacheType)?`left`:`right`}.`,
+                "stacheY":`${mii.facialHair.mustacheYPos!==10?`On the mustache page (within the ninth tab), press the `:``}${mii.facialHair.mustacheYPos>10?`down button ${mii.facialHair.mustacheYPos-10} times.`:mii.facialHair.mustacheYPos<10?`up button ${10-mii.facialHair.mustacheYPos} times.`:``}`,
+                "stacheSize":`${mii.facialHair.mustacheSize!==4?`On the mustache page (within the ninth tab), `:``}${mii.facialHair.mustacheSize<4?`press the shrink button ${4-mii.facialHair.mustacheSize} times.`:mii.facialHair.mustacheSize>4?`press the enlarge button ${mii.facialHair.mustacheSize-4} times.`:``}`,
+                "mole":`${mii.mole.on?`On the mole page (within the ninth tab), turn the mole on.`:``}`,
+                "moleX":`${mii.mole.xPos!==2?`On the mole page (within the ninth tab), press the `:``}${mii.mole.xPos>2?`right button ${mii.mole.xPos-2} times.`:mii.mole.xPos<2?`left button ${2-mii.mole.xPos} times.`:``}`,
+                "moleY":`${mii.mole.yPos!==20?`On the mole page (within the ninth tab), press the `:``}${mii.mole.yPos>20?`down button ${mii.mole.yPos-20} times.`:mii.mole.yPos<20?`up button ${20-mii.mole.yPos} times.`:``}`,
+                "moleSize":`${mii.mole.size!==4?`On the mole page (within the ninth tab), `:``}${mii.mole.size<4?`press the shrink button ${4-mii.mole.size} times.`:mii.mole.size>4?`press the enlarge button ${mii.mole.size-4} times.`:``}`,
+                "beard":`On the beard page (within the ninth tab), set the beard to the one on the ${[0,1].includes(mii.facialHair.beardType)?`top`:`bottom`}-${[0,2].includes(mii.facialHair.beardType)?`left`:`right`}.`,
+                "beardCol":`On the mustache OR beard pages (within the ninth tab), set the color to the one ${hairCols.indexOf(mii.facialHair.col)+(hairCols.indexOf(mii.facialHair.col)>3?-3:1)} from the left, on the ${hairCols.indexOf(mii.facialHair.col)>3?`bottom`:`top`} row.`,
+                "other":`The Nickname of this Mii is ${mii.info.name}.${mii.info.creatorName?` The creator was ${mii.info.creatorName}.`:``} Mingle was turned ${mii.info.mingle?`on`:`off`}.${mii.info.birthday!==0?` Its birthday is ${["","January","February","March","April","May","June","July","August","September","October","November","December"][mii.info.birthMonth]} ${mii.info.birthday}.`:``}`
+            };
+            if(!full){
+                var defaultMiiInstrs=structuredClone(mii.info.gender==="Male"?defaultInstrs.wii.male:defaultInstrs.wii.female);
+                Object.keys(instrs).forEach(instr=>{
+                    if(instrs[instr]===defaultMiiInstrs[instr]){
+                        delete instrs[instr];
+                    }
+                });
+            }
+            return instrs;
+        }
+        else{
+            var instrs={
+                "base":`Select "Start from Scratch", and then "${mii.info.gender}".`,
+                "faceShape":`On the face page (first tab), set the face shape to the one ${Math.ceil((mii.face.shape+1)/3)} from the top, and ${[1,2,3,1,2,3,1,2,3,1,2,3][mii.face.shape]} from the left.`,
+                "skinCol":`On the face page (first tab), set the color to the one ${skinCols.indexOf(mii.face.col)+1} from the top.`,
+                "makeup":`On the face page's makeup tab, set the makeup to \"${mii.face.makeup}\" (the one ${Math.ceil((makeups3DS.indexOf(mii.face.makeup)+1)/3)} from the top, and ${[1,2,3,1,2,3,1,2,3,1,2,3][makeups3DS.indexOf(mii.face.makeup)]} from the left).`,
+                "feature":`On the face page's wrinkles tab, set the facial feature to \"${mii.face.feature}\" (the one ${Math.ceil((faceFeatures3DS.indexOf(mii.face.feature)+1)/3)+1} from the top, and ${[1,2,3,1,2,3,1,2,3,1,2,3][makeups3DS.indexOf(mii.face.makeup)]} from the left).`,
+                "hairStyle":`On the hair page (second tab), set the hair style to the one ${Math.ceil((mii.hair.style[1]+1)/3)} from the top, and ${[1,2,3,1,2,3,1,2,3,1,2,3][mii.hair.style[1]]} from the left, on page ${mii.hair.style[0]+1}.`,
+                "hairFlipped":`${mii.hair.flipped?`On the hair page (second tab), press the button to flip the hair.`:``}`,
+                "hairColor":`On the hair page (second tab), set the hair color to the one ${hairCols.indexOf(mii.hair.col)+1} from the top.`,
+                "eyebrowStyle":`On the eyebrow page (third tab), set the eyebrow style to the one ${[1,2,3,1,2,3,1,2,3,1,2,3][mii.eyebrows.style[1]]} from the left, ${Math.ceil((mii.eyebrows.style[1]+1)/3)} from the top, on page ${mii.eyebrows.style[0]+1}.`,
+                "eyebrowColor":`On the eyebrow page (third tab), set the eyebrow color to the one ${hairCols.indexOf(mii.eyebrows.col)+1} from the top.`,
+                "eyebrowY":`${mii.eyebrows.yPos!==7?`On the eyebrow page (third tab), `:``}${mii.eyebrows.yPos<7?`press the up button ${7-mii.eyebrows.yPos} times.`:mii.eyebrows.yPos>7?`press the down button ${mii.eyebrows.yPos-7} times.`:``}`,
+                "eyebrowSize":`${mii.eyebrows.size!==4?`On the eyebrow page (third tab), `:``}${mii.eyebrows.size<4?`press the shrink button ${4-mii.eyebrows.size} times.`:mii.eyebrows.size>4?`press the enlarge button ${mii.eyebrows.size-4} times.`:``}`,
+                "eyebrowRot":`${mii.eyebrows.rot!==6?`On the eyebrow page (third tab), `:``}${mii.eyebrows.rot<6?`press the rotate clockwise button ${6-mii.eyebrows.rot} times.`:mii.eyebrows.rot>6?`press the rotate counter-clockwise button ${mii.eyebrows.rot-6} times.`:``}`,
+                "eyebrowDist":`${mii.eyebrows.distApart!==2?`On the eyebrow page (third tab), `:``}${mii.eyebrows.distApart<2?`press the closer-together button ${2-mii.eyebrows.distApart} times.`:mii.eyebrows.distApart>2?`press the further-apart button ${mii.eyebrows.distApart-2} times.`:``}`,
+                "eyebrowSquash":`${mii.eyebrows.squash!==3?`On the eyebrow page (third tab), `:``}${mii.eyebrows.squash<3?`press the squish button ${3-mii.eyebrows.squash} times.`:mii.eyebrows.squash>3?`press the un-squish button ${mii.eyebrows.squash-3} times.`:``}`,
+                "eyeType":`On the eye page (fourth tab), set the eye type to the one ${[1,2,3,1,2,3,1,2,3,1,2,3][mii.eyes.type[1]]} from the left, ${Math.ceil((mii.eyes.type[1]+1)/3)} from the top, on page ${mii.eyes.type[0]+1}.`,
+                "eyeColor":`On the eye page (fourth tab), set the color to the one ${eyeCols.indexOf(mii.eyes.col)+1} from the top.`,
+                "eyeY":`${mii.eyes.yPos!==12?`On the eye page (fourth tab), `:``}${mii.eyes.yPos<12?`press the up button ${12-mii.eyes.yPos} times.`:mii.eyes.yPos>12?`press the down button ${mii.eyes.yPos-12} times.`:``}`,
+                "eyeSize":`${mii.eyes.size!==4?`On the eye page (fourth tab), `:``}${mii.eyes.size<4?`press the shrink button ${4-mii.eyes.size} times.`:mii.eyes.size>4?`press the enlarge button ${mii.eyes.size-4} times.`:``}`,
+                "eyeRot":`${mii.eyes.rot!==(mii.info.gender==="Female"?3:4)?`On the eye page (fourth tab), `:``}${mii.eyes.rot<(mii.info.gender==="Female"?3:4)?`press the rotate clockwise button ${(mii.info.gender==="Female"?3:4)-mii.eyes.rot} times.`:mii.eyes.rot>(mii.info.gender==="Female"?3:4)?`press the rotate counter-clockwise button ${mii.eyes.rot-(mii.info.gender==="Female"?3:4)} times.`:``}`,
+                "eyeDist":`${mii.eyes.distApart!==2?`On the eye page (fourth tab), `:``}${mii.eyes.distApart<2?`press the closer-together button ${2-mii.eyes.distApart} times.`:mii.eyes.distApart>2?`press the further-apart button ${mii.eyes.distApart-2} times.`:``}`,
+                "eyeSquash":`${mii.eyes.squash!==3?`On the eye page (fourth tab), `:``}${mii.eyes.squash<3?`press the squish button ${3-mii.eyes.squash} times.`:mii.eyes.squash>3?`press the un-squish button ${mii.eyes.squash-3} times.`:``}`,
+                "noseType":`On the nose page (fifth tab), set the nose to the one ${Math.ceil((mii.nose.type[1]+1)/3)} from the top, and ${[1,2,3,1,2,3,1,2,3,1,2,3][mii.nose.type[1]]} from the left, on page ${mii.nose.type[0]}.`,
+                "noseY":`${mii.nose.yPos!==9?`On the nose page (fifth tab), `:``}${mii.nose.yPos<9?`press the up button ${9-mii.nose.yPos} times.`:mii.nose.yPos>9?`press the down button ${mii.nose.yPos-9} times.`:``}`,
+                "noseSize":`${mii.nose.size!==4?`On the nose page (fifth tab), `:``}${mii.nose.size<4?`press the shrink button ${4-mii.nose.size} times.`:mii.nose.size>4?`press the enlarge button ${mii.nose.size-4} times.`:``}`,
+                "mouthType":`On the mouth page (sixth tab), set the mouth type to the one ${[1,2,3,1,2,3,1,2,3,1,2,3][mii.mouth.type[1]]} from the left, ${Math.ceil((mii.mouth.type[1]+1)/3)} from the top, on page ${mii.mouth.type[0]+1}.`,
+                "mouthCol":`On the mouth page (sixth tab), set the color to the one ${mouthCols3DS.indexOf(mii.mouth.col)+1} from the top.`,
+                "mouthY":`${mii.mouth.yPos!==13?`On the mouth page (sixth tab), `:``}${mii.mouth.yPos<13?`press the up button ${13-mii.mouth.yPos} times.`:mii.mouth.yPos>13?`press the down button ${mii.mouth.yPos-13} times.`:``}`,
+                "mouthSize":`${mii.mouth.size!==4?`On the mouth page (sixth tab), `:``}${mii.mouth.size<4?`press the shrink button ${4-mii.mouth.size} times.`:mii.mouth.size>4?`press the enlarge button ${mii.mouth.size-4} times.`:``}`,
+                "mouthSquash":`${mii.mouth.squash!==3?`On the mouth page (sixth tab), `:``}${mii.mouth.squash<3?`press the squish button ${3-mii.mouth.squash} times.`:mii.mouth.squash>3?`press the un-squish button ${mii.mouth.squash-3} times.`:``}`,
+                "glasses":`On the glasses page (within the seventh tab), set the glasses to the one ${Math.ceil((mii.glasses.type+1)/3)} from the top, and ${[1,2,3,1,2,3,1,2,3,1,2,3][mii.glasses.type]} from the left.`,
+                "glassesCol":`On the glasses page (within the seventh tab), set the color to the one ${glassesCols3DS.indexOf(mii.glasses.col)+1} from the top.`,
+                "glassesY":`${mii.glasses.yPos!==10?`On the glasses page (within the seventh tab), `:``}${mii.glasses.yPos<10?`press the up button ${10-mii.glasses.yPos} times.`:mii.glasses.yPos>10?`press the down button ${mii.glasses.yPos-10} times.`:``}`,
+                "glassesSize":`${mii.glasses.size!==4?`On the glasses page (within the seventh tab), `:``}${mii.glasses.size<4?`press the shrink button ${4-mii.glasses.size} times.`:mii.glasses.size>4?`press the enlarge button ${mii.glasses.size-4} times.`:``}`,
+                "stache":`On the mustache page (within the seventh tab), set the mustache to the one on the ${[0,1].includes(mii.facialHair.mustacheType)?`top`:[2,3].includes(mii.facialHair.mustacheType)?`middle`:`bottom`}-${[0,2,4].includes(mii.facialHair.mustacheType)?`left`:`right`}.`,
+                "stacheY":`${mii.facialHair.mustacheYPos!==10?`On the mustache page (within the seventh tab), press the `:``}${mii.facialHair.mustacheYPos>10?`down button ${mii.facialHair.mustacheYPos-10} times.`:mii.facialHair.mustacheYPos<10?`up button ${10-mii.facialHair.mustacheYPos} times.`:``}`,
+                "stacheSize":`${mii.facialHair.mustacheSize!==4?`On the mustache page (within the seventh tab), `:``}${mii.facialHair.mustacheSize<4?`press the shrink button ${4-mii.facialHair.mustacheSize} times.`:mii.facialHair.mustacheSize>4?`press the enlarge button ${mii.facialHair.mustacheSize-4} times.`:``}`,
+                "mole":`${mii.mole.on?`On the mole page (within the seventh tab), turn the mole on.`:``}`,
+                "moleX":`${mii.mole.xPos!==2?`On the mole page (within the seventh tab), press the `:``}${mii.mole.xPos>2?`right button ${mii.mole.xPos-2} times.`:mii.mole.xPos<2?`left button ${2-mii.mole.xPos} times.`:``}`,
+                "moleY":`${mii.mole.yPos!==20?`On the mole page (within the seventh tab), press the `:``}${mii.mole.yPos>20?`down button ${mii.mole.yPos-20} times.`:mii.mole.yPos<20?`up button ${20-mii.mole.yPos} times.`:``}`,
+                "moleSize":`${mii.mole.size!==4?`On the mole page (within the seventh tab), `:``}${mii.mole.size<4?`press the shrink button ${4-mii.mole.size} times.`:mii.mole.size>4?`press the enlarge button ${mii.mole.size-4} times.`:``}`,
+                "beard":`On the beard page (within the seventh tab), set the beard to the one on the ${[0,1].includes(mii.facialHair.beardType)?`top`:[2,3].includes(mii.facialHair.beardType)?`middle`:`bottom`}-${[0,2].includes(mii.facialHair.beardType)?`left`:`right`}.`,
+                "beardCol":`On the mustache OR beard pages (within the seventh tab), set the color to the one ${hairCols.indexOf(mii.facialHair.col)+1} from the top.`,
+                "heightWeight":`On the build page (eighth tab), set the height to ${Math.round((100/128)*mii.info.height)}%, and the weight to ${Math.round((100/128)*mii.info.weight)}%.`,
+                "col":`On the info page (after pressing "Next"), set the Favorite Color to ${mii.info.favColor} (${favCols.indexOf(mii.info.favColor)<=5?favCols.indexOf(mii.info.favColor)+1:favCols.indexOf(mii.info.favColor)-5} from the left, ${favCols.indexOf(mii.info.favColor)>5?"bottom":"top"} row).`,
+                "other":`The Nickname of this Mii is ${mii.info.name}.${mii.info.creatorName?` The creator was ${mii.info.creatorName}.`:``} ${mii.info.birthday!==0?` Its birthday is ${["","January","February","March","April","May","June","July","August","September","October","November","December"][mii.info.birthMonth]} ${mii.info.birthday}.`:``}`
+            };
+            if(!full){
+                var defaultMiiInstrs=structuredClone(mii.info.gender==="Male"?defaultInstrs["3ds"].male:defaultInstrs["3ds"].female);
+                Object.keys(instrs).forEach(instr=>{
+                    if(instrs[instr]===defaultMiiInstrs[instr]){
+                        delete instrs[instr];
+                    }
+                });
+            }
+            return instrs;
+        }
     }
 }
