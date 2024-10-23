@@ -2,8 +2,7 @@
 Read, Edit, Write, and make Special Miis from a Wiimote binary file or 3DS QR Code to a binary file or QR code
 
 
--# Note: The 3DS and Wii U do the same things with Miis. The Wii U does not however support Special Miis, and so 3DS is the name used for the 3DS/Wii U generation of Miis throughout this project. However, as long as you are not hoping to use Special Miis on the Wii U, as it cannot, the **3DS and Wii U are completely interchangeable** as far as Miis go otherwise.
--# Note: This package is for managing Wii, and 3DS/Wii U Miis.
+Note: The 3DS and Wii U do the same things with Miis. The Wii U does not however support Special Miis, and so 3DS is the name used for the 3DS/Wii U generation of Miis throughout this project. However, as long as you are not hoping to use Special Miis on the Wii U, as it cannot, the **3DS and Wii U are completely interchangeable** as far as Miis go otherwise.
 
 ## Installation
 `npm i miijs` OR `npm install miijs`
@@ -38,7 +37,7 @@ Here is a list of discrepancies this function attempts to handle.
  
 ## Transferring Miis to and from the System
  - Wii
-    - Method 1 (Recommended, doesn't require homebrew): Connect the Wiimote to your PC, Dolphin seems to be the easiest way to do so though there are some more difficult ways to do so, and use [WDMLMiiTransfer](https://sourceforge.net/projects/wdml/files/WDML%20-%20MiiTransfer/). Open the `readSlotX.bat` file for the slot you're trying to read from (Array notation, 0=1, 1=2, 2=3, and so on). The Mii will be in the same directory under the name `miiX.mii`, where X is the same number as the readSlot you opened. If you used `readSlotAll.bat`, then there will be 10 Miis (0-9) in the directory. Note that if no Mii was ever present in that slot ever on the Wiimote, it will still output a `miiX.mii` file, though it will not contain the Mii data correctly. To write to the Wiimote, make sure the Mii you're writing is in the same directory and named `miiX.mii`, where X is the slot you're writing to, and open `writeSlotX.bat`, where X is the slot you're writing to (in array notation).
+    - Method 1 (Recommended, doesn't require homebrew): Connect the Wiimote to your PC, Dolphin seems to be the easiest way to do so though there are some more difficult ways to do so, and use [WDMLMiiTransfer](https://sourceforge.net/projects/wdml/files/WDML%20-%20MiiTransfer/). Open the `readSlotX.bat` file for the slot you're trying to read from (Array notation, 0=1, 1=2, 2=3, and so on). The Mii will be in the same directory under the name `miiX.mii`, where X is the same number as the readSlot you opened. If you used `readSlotAll.bat`, then there will be 10 Miis (0-9) in the directory. Note that if no Mii was ever present in that slot ever on the Wiimote, it will still output a `miiX.mii` file, though it will not contain the Mii data correctly. To write to the Wiimote, make sure the Mii you're writing is in the same directory and named `miiX.mii`, where X is the slot you're writing to, and open `writeSlotX.bat`, where X is the slot you're writing to (in array notation). You can transfer Miis on and off the Wiimote from the Wii by using the Wiimote icon in the top right of Mii Maker.
     - Method 2 (Requires Homebrew, is untested by me): [Mii Installer](https://wiibrew.org/wiki/Mii_Installer) for writing from the SD card to the Wii, and [Mii Extractor](https://wiibrew.org/wiki/Mii_Extractor) for reading from the Wii.
  - 3DS and Wii U
     - Open Mii Maker, select "QR Code/Image Options", and then select the respective QR Code option, be it scanning a QR code or saving a Mii as a QR code.
