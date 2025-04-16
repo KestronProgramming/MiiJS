@@ -1333,7 +1333,7 @@ module.exports={
                 miiId="11000110";
             break;
             default:
-                miiId="10101001";
+                miiId="10001001";
             break;
         }
         for(var i=0;i<3;i++){
@@ -1763,7 +1763,7 @@ module.exports={
                     miiId="11000110";
                 break;
                 default:
-                    miiId="10101001";
+                    miiId="10001001";
                 break;
             }
             for(var i=0;i<3;i++){
