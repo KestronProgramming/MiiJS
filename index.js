@@ -1747,7 +1747,7 @@ module.exports={
                                 alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
                                 alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
                             }, 424, 424);
-                            Jimp.read('./node_modules/miijs/crown.jpg',(err,thi_img)=>{
+                            Jimp.read(path.join(__dirname, 'crown.jpg'),(err,thi_img)=>{
                                 thi_img.resize(40,20);
                                 if(mii.info.type==="Special") fir_img.blit(thi_img,232,150);
                                 fir_img.write(outPath);
