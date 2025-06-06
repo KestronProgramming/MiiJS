@@ -1,16 +1,28 @@
 const fs = require('fs');
-const { createCanvas, loadImage } = require('canvas');
+const { createCanvas, loadImage, ImageData } = require('canvas');
 const jsQR = require('jsqr');
-var Jimp = require('jimp');
+const Jimp = require('jimp');
+const THREE = require('three');
 const QRCode = require('qrcode');
 const httpsLib = require('https');
 const asmCrypto=require("./asmCrypto.js");
+const path=require("path");
+const createGL = require('gl');
+const {FFLCharModelDescDefault,createCharModel,initCharModelTextures,initializeFFL,parseHexOrB64ToUint8Array}=require("./ffl.js");
+const ModuleFFL=require("./ffl-emscripten-single-file.js");
+const FFLShaderMaterial=require("./FFLShaderMaterial.js");
 function getKeyByValue(object, value) {
     for (var key in object) {
       if (object[key] === value) {
         return key;
       }
     }
+}
+
+//If FFLResHigh.dat is in the same directory as Node.js is calling the library from, use it by default
+var _fflRes=null;
+if(fs.existsSync("./FFLResHigh.dat")){
+    _fflRes=fs.readFileSync("./FFLResHigh.dat");
 }
 
 var binary;
@@ -1060,6 +1072,101 @@ var defaultInstrs={
         }
     }
 };
+
+function isPowerOfTwo(n) {
+  return (n & (n - 1)) === 0 && n !== 0;
+}
+async function renderMii(studioMii,fflRes=_fflRes) {
+  var width=600,height=600;
+  /* ---------- WebGL 1 context ---------- */
+  const gl = createGL(width, height, { preserveDrawingBuffer: true });
+
+  /* ---------- dummy canvas to keep Three.js happy ---------- */
+  const dummyCanvas = {
+    width,
+    height,
+    getContext: () => gl,
+    addEventListener () {},
+    removeEventListener () {},
+    style: {},
+  };
+
+  /* ---------- Three.js renderer ---------- */
+
+  
+  const renderer = new THREE.WebGLRenderer({
+    canvas:  dummyCanvas,
+    context: gl,
+  });
+  renderer.setSize(width, height);
+  renderer.setClearColor(0xffffff);
+
+  let moduleFFL, currentCharModel;
+  /* ---------- simple scene ---------- */
+  const scene   = new THREE.Scene();
+  scene.background = new THREE.Color().setHex(0xffffff, THREE.ColorManagement ? THREE.ColorManagement.workingColorSpace : '');
+  let camera = new THREE.PerspectiveCamera(15, width / height, 1, 5000);
+  camera.position.set(0, 30, 500);
+  function updateCharModelInScene(data, modelDesc) {
+      // Decode data.
+      if (typeof data === 'string') {
+          data = parseHexOrB64ToUint8Array(data);
+      }
+      // Continue assuming it is Uint8Array.
+      // If an existing CharModel exists, update it.
+      if (currentCharModel) {
+          // Remove current CharModel from the scene, then dispose it.
+          currentCharModel.meshes && scene.remove(currentCharModel.meshes);
+          currentCharModel.dispose();
+      }
+
+      // Create a new CharModel.
+      currentCharModel = createCharModel(data, modelDesc, FFLShaderMaterial, moduleFFL);
+      // Initialize textures for the new CharModel.
+      initCharModelTextures(currentCharModel, renderer);
+
+      // Add CharModel meshes to scene.
+      scene.add(currentCharModel.meshes);
+  }
+
+  const box     = new THREE.Mesh(
+    new THREE.BoxGeometry(),
+    new THREE.MeshBasicMaterial({ color: 0x00ffff })
+  );
+  scene.add(box);
+  const initResult = await initializeFFL(fflRes, moduleFFL ?? ModuleFFL);
+  moduleFFL = initResult.module;
+
+  updateCharModelInScene(studioMii, FFLCharModelDescDefault); // Use default expression.
+
+  renderer.render(scene, camera);
+
+
+
+  /* ---------- read pixels ---------- */
+  const pixels   = new Uint8Array(width * height * 4);
+  gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+  /* ---------- flip rows (Uint8Array → Buffer) ---------- */
+  const src      = Buffer.from(pixels);          // <-- Convert here
+  const flipped  = Buffer.alloc(src.length);
+
+  const rowBytes = width * 4;
+  for (let y = 0; y < height; y++) {
+    const srcStart = y * rowBytes;
+    const dstStart = (height - y - 1) * rowBytes;
+    src.copy(flipped, dstStart, srcStart, srcStart + rowBytes);
+  }
+
+  /* ---------- draw into Node-canvas ---------- */
+  const canvas = createCanvas(width, height);
+  const ctx    = canvas.getContext('2d');
+  const img    = new ImageData(new Uint8ClampedArray(flipped.buffer), width, height);
+  ctx.putImageData(img, 0, 0);
+
+  return canvas.toBuffer('image/png');
+}
+
 module.exports={
     readWiiBin:function(binOrPath){
         var thisMii={
@@ -1414,7 +1521,7 @@ module.exports={
         }
         fs.writeFileSync(outPath, Buffer.from(buffers));
     },
-    write3DSQR:function(jsonIn,outPath){
+    write3DSQR:async function(jsonIn,outPath,fflRes=_fflRes){
         var mii=jsonIn;
         function makeMiiBinary(mii){
             if(mii.perms.sharing&&mii.info.type==="Special"){
@@ -1536,7 +1643,6 @@ module.exports={
             if (err) throw err;
         });
         var studioMii=new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
-        //miiPreview.src = 'https://studio.mii.nintendo.com/miis/image.png?data=' + mii.previewData + "&width=270&type=face";
         function encodeStudio(studio) {
             function byteToString(int){
                 var str = int.toString(16);
@@ -1614,44 +1720,49 @@ module.exports={
         studioMii[0x1F] = mii.mole.size;
         studioMii[0x21] = mii.mole.xPos;
         studioMii[0x22] = mii.mole.yPos;
-        downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + encodeStudio(studioMii) + "&width=270&type=face","./temp.png").then(d=>{
-            Jimp.read(mii.name+'Output.png', (err, fir_img) => {
-                if(err) {
-                    console.log(err);
-                } else {
-                    Jimp.read('temp.png', (err, sec_img) => {
-                        if(err) {
-                            console.log(err);
-                        } else {
-                            fir_img.resize(424, 424);
-                            sec_img.resize(130,130);
-                            const canvas = new Jimp(sec_img.bitmap.width, sec_img.bitmap.height, 0xFFFFFFFF);
-                            canvas.composite(sec_img, 0, 0);
-                            fir_img.blit(canvas, 212-130/2,212-130/2);
-                            Jimp.loadFont(Jimp.FONT_SANS_16_BLACK).then(font => {
-                                fir_img.print(font, 0, 50, {
-                                  text: mii.name,
-                                  alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-                                  alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
-                                }, 424, 424);
-                                Jimp.read('./node_modules/miijs/crown.jpg',(err,thi_img)=>{
-                                    thi_img.resize(40,20);
-                                    if(mii.info.type==="Special") fir_img.blit(thi_img,232,150);
-                                    fir_img.write(outPath);
-                                    fs.unlinkSync("./temp.png");
-                                });
-                              });
-                        }
-                    })
-                }
-                fs.unlinkSync(mii.name+"Output.png");
-            });
+        if(fflRes===null||fflRes===undefined){
+            await this.render3DSMiiWithStudio(jsonIn,"./temp.png");
+        }
+        else{
+            var buf=await this.render3DSMii(jsonIn,fflRes);
+            fs.writeFileSync("./temp.png",buf);
+        }
+        
+        Jimp.read(mii.name+'Output.png', (err, fir_img) => {
+            if(err) {
+                console.log(err);
+            } else {
+                Jimp.read('temp.png', (err, sec_img) => {
+                    if(err) {
+                        console.log(err);
+                    } else {
+                        fir_img.resize(424, 424);
+                        sec_img.resize(130,130);
+                        const canvas = new Jimp(sec_img.bitmap.width, sec_img.bitmap.height, 0xFFFFFFFF);
+                        canvas.composite(sec_img, 0, 0);
+                        fir_img.blit(canvas, 212-130/2,212-130/2);
+                        Jimp.loadFont(Jimp.FONT_SANS_16_BLACK).then(font => {
+                            fir_img.print(font, 0, 50, {
+                                text: mii.name,
+                                alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+                                alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
+                            }, 424, 424);
+                            Jimp.read('./node_modules/miijs/crown.jpg',(err,thi_img)=>{
+                                thi_img.resize(40,20);
+                                if(mii.info.type==="Special") fir_img.blit(thi_img,232,150);
+                                fir_img.write(outPath);
+                                fs.unlinkSync("./temp.png");
+                            });
+                        });
+                    }
+                })
+            }
+            fs.unlinkSync(mii.name+"Output.png");
         });
     },
-    render3DSMiiFromJSON:function(jsonIn,outPath){
+    render3DSMiiWithStudio:async function(jsonIn,outPath){
         var mii=jsonIn;
         var studioMii=new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
-        //miiPreview.src = 'https://studio.mii.nintendo.com/miis/image.png?data=' + mii.previewData + "&width=270&type=face";
         function encodeStudio(studio) {
             function byteToString(int){
                 var str = int.toString(16);
@@ -1729,7 +1840,7 @@ module.exports={
         studioMii[0x1F] = mii.mole.size;
         studioMii[0x21] = mii.mole.xPos;
         studioMii[0x22] = mii.mole.yPos;
-        downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + encodeStudio(studioMii) + "&width=270&type=face",outPath);
+        await downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + encodeStudio(studioMii) + "&width=270&type=face",outPath);
     },
     convertMii:function (jsonIn,typeFrom){
         typeFrom=typeFrom.toLowerCase();
@@ -2068,5 +2179,8 @@ module.exports={
             }
             return instrs;
         }
+    },
+    render3DSMii:async function(jsonIn,fflRes=_fflRes){
+        return await renderMii("000d157179788288a1a7b6bcc1d2e1fdf8020910171e1e2534373e3b444b5b626d747d707a707d787a7f869699a2ad",fflRes);
     }
 }

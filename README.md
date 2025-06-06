@@ -13,12 +13,13 @@ To make a special Mii, read in the file using the appropriate function, set `mii
 
 # Functions
  - async read3DSQR(pathToQR), returns JSON
- - write3DSQR(miiJSON, path), writes QR
+ - write3DSQR(miiJSON, fflRes), returns a PNG buffer of a 3DS scannable Mii. If no fflRes is specified, the middle of the QR will not contain the Mii's thumbnail image. If one is, it will contain an image of the Mii. fflRes must be passed as a buffer (such as `fs.readFileSync('FFLResHigh.dat')`). FFLResHigh.dat will not be provided by the library, but must be provided to the library. `FFLResHigh.dat` can also be placed in the same directory.
  - readWiiBin(pathToMii), returns JSON
- - writeWiiBin(miiJSON, path), writes new bin to the path specified
- - render3DSMiiFromJSON(miiJSON, path), writes PNG representation of Mii's face to the path specified
- - convertMii(miiJson, whatConsoleItIsForOriginallly ("3ds" or "wii")), converts the Mii JSON format
+ - writeWiiBin(miiJSON), returns Mii binary which can then be written
+ - async render3DSMiiWithStudio(miiJSON, path), writes PNG representation of Mii's face to specific path, using Nintendo's Mii Studio
+ - convertMii(miiJson, whatConsoleItIsForOriginallly ("3ds" or "wii"), whatConsoleItIsGoingTo ("3ds", "wii", or "studio" )), converts the Mii JSON format
  - generateInstructions(miiJson, whatConsoleTheMiiIsFor, fullInstructions), returns a JSON object of different instruction fields. If full is not set, only the instructions that differ from a default Mii will be returned.
+ - async render3DSMii(miiJSON,fflRes), Returns a buffer containing a PNG representation of the Mii's face. FFLResHigh.dat must be passed as a buffer (such as `fs.readFileSync('FFLResHigh.dat')`). FFLResHigh.dat will not be provided by the library, but must be provided to the library. `FFLResHigh.dat` can also be placed in the same directory.
 
 ## Discrepancies in `convertMii` function
 All of these discrepancies __only__ apply when converting from the **3DS to the Wii**, converting from the Wii to the 3DS should be a perfect conversion.
@@ -46,3 +47,4 @@ Here is a list of discrepancies this function attempts to handle.
 
 # Credits
  - [kazuki-4ys' MiiInfoEditorCTR](https://github.com/kazuki-4ys/kazuki-4ys.github.io/tree/master/web_apps/MiiInfoEditorCTR), I repurposed how to decrypt and reencrypt the QR codes from here, including repurposing the asmCrypto.js file in its entirety with very small modifications. I believe I also modified the code for rendering the Mii using Nintendo's Mii Studio from here as well, though I do not remember for certain.
+ - [ariankordi's FFL.js](https://github.com/ariankordi/FFL.js/), All files starting with /^ffl\*/i are from FFL.js, as well as `struct-fu.js`. They're here to support rendering the Miis locally. A lot of modifications had to be made to work in Node.js, and while it was a fair bit of work, it's far less than rewriting it from the ground up (Particularly as someone almost fully new to 3D rendering) and locally rendering Miis would not have been possible without this repo.
