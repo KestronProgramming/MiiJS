@@ -1632,13 +1632,12 @@ var exports={
                     buffers.push(parseInt(toWrite[i],2));
                 }
                 const buffer = Buffer.from(buffers);
-                fs.writeFileSync(outPath, buffer);
+                return buffer;
             }
-            makeMiiBinary(mii);
-            var encryptedData = Buffer.from(encodeAesCcm(new Uint8Array(fs.readFileSync(outPath))));
-            fs.writeFileSync(outPath,encryptedData);
+            const miiBinary = makeMiiBinary(mii);
+            var encryptedData = Buffer.from(encodeAesCcm(new Uint8Array(miiBinary)));
             const qrBuffer = await QRCode.toBuffer(
-                [{ data: fs.readFileSync(outPath), mode: 'byte' }],
+                [{ data: encryptedData, mode: 'byte' }],
                 { type: 'png' }
             );
             var studioMii=new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
