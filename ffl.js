@@ -1703,7 +1703,6 @@ async function _loadDataIntoHeap(resource, module) {
 	let heapSize;
 	let heapPtr;
 	try {
-		console.log(resource);
 		// Copy resource into heap.
 		if (resource instanceof ArrayBuffer) {
 			resource = new Uint8Array(resource);
