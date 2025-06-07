@@ -1,9 +1,11 @@
 const fs = require('fs');
-const { createCanvas, loadImage, ImageData } = require('canvas');
+const nodeCanvas = require('canvas');
+const { createCanvas, loadImage, ImageData } = nodeCanvas;
 const jsQR = require('jsqr');
 const Jimp = require('jimp');
 const THREE = require('three');
-const QRCode = require('qrcode');
+const QRCodeStyling = require("qr-code-styling");
+const { JSDOM } = require("jsdom");
 const httpsLib = require('https');
 const asmCrypto=require("./asmCrypto.js");
 const path=require("path");
@@ -1636,10 +1638,31 @@ var exports={
             }
             const miiBinary = makeMiiBinary(mii);
             var encryptedData = Buffer.from(encodeAesCcm(new Uint8Array(miiBinary)));
-            const qrBuffer = await QRCode.toBuffer(
-                [{ data: encryptedData, mode: 'byte' }],
-                { type: 'png' }
-            );
+
+            const options = {
+                width: 300,
+                height: 300,
+                data: encryptedData.toString("latin1"),
+                image: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==", // 1x1 gif
+                dotsOptions: {
+                    color: "#000000",
+                    type: "square"
+                },
+                backgroundOptions: {
+                    color: "#ffffff",
+                },
+                imageOptions: {
+                    crossOrigin: "anonymous",
+                    imageSize: 0.4 // Changes how large center area is
+                }
+            }
+            const qrCodeImage = new QRCodeStyling({
+                jsdom: JSDOM,
+                nodeCanvas,
+                ...options
+            });
+            const qrBuffer = Buffer.from( await qrCodeImage.getRawData("png") )
+
             var studioMii=new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
             studioMii[0x16] = mii.info.gender==="Male"?0:1;
             studioMii[0x15] = favCols.indexOf(mii.info.favColor);
