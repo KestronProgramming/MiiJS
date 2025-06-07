@@ -25,14 +25,13 @@
   },
   "homepage": "https://github.com/KestronProgramming/MiiJS#readme",
   "dependencies": {
-    "canvas": "^2.11.2",
-    "fs": "^0.0.1-security",
+    "canvas": "^3.1.0",
     "gl": "^8.1.6",
     "https": "^1.0.0",
-    "jimp": "^0.22.7",
+    "jimp": "0.22.12",
     "jsqr": "^1.4.0",
     "path": "^0.12.7",
-    "qrcode": "^1.5.3",
-    "three": "0.138.0"
+    "qrcode": "^1.5.4",
+    "three": "0.138.3"
   }
 }
