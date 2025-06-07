@@ -1750,7 +1750,7 @@ var exports={
             if(mii.info.type==="Special"){
                 const thi_img = await Jimp.read(path.join(__dirname, 'crown.jpg'));
                 thi_img.resize(40,20);
-                fir_img.blit(thi_img,232,150);
+                fir_img.blit(thi_img,225,160);
             }
 
             fir_img.write(outPath, (err, img) =>
