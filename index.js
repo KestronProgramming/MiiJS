@@ -78,18 +78,17 @@ function encodeAesCcm(data){
     var ciphertext = asmCrypto.AES_CCM.encrypt(plaintext,aes_key,nonce,undefined,TAG_LENGTH);
     return Uint8Cat(cfsd.subarray(NONCE_OFFSET,NONCE_OFFSET + NONCE_LENGTH),ciphertext.subarray(0,ciphertext.length - 24),ciphertext.subarray(ciphertext.length - TAG_LENGTH,ciphertext.length))
 }
-function downloadImage(url, filepath) {
+async function downloadImage(url) {
     return new Promise((resolve, reject) => {
         httpsLib.get(url, (res) => {
             if (res.statusCode === 200) {
-                res.pipe(fs.createWriteStream(filepath))
-                    .on('error', reject)
-                    .once('close', () => resolve(filepath));
+                const data = [];
+                res.on('data', chunk => data.push(chunk));
+                res.on('end', () => resolve(Buffer.concat(data)));
+                res.on('error', reject);
             } else {
-                // Consume response data to free up memory
                 res.resume();
                 reject(new Error(`Request Failed With a Status Code: ${res.statusCode}`));
-
             }
         });
     });
@@ -1277,7 +1276,7 @@ var exports={
         return thisMii;
     },
     read3DSQR:async function(binOrPath){
-        function readMii(){
+        function readMii(data){
             var miiJson={
                 info:{},
                 perms:{},
@@ -1291,7 +1290,7 @@ var exports={
                 glasses:{},
                 mole:{}
             };
-            binary=fs.readFileSync("./decryptedTemp.3dMii");
+            binary=data;
             var temp=getBinaryFromAddress(0x18);
             var temp2=getBinaryFromAddress(0x19);
             miiJson.info.birthday=parseInt(temp2.slice(6,8)+temp.slice(0,3),2);
@@ -1384,7 +1383,6 @@ var exports={
             temp2=getBinaryFromAddress(0x47);
             miiJson.mole.xPos=parseInt(temp2.slice(6,8)+temp.slice(0,3),2);
             miiJson.mole.yPos=parseInt(temp2.slice(1,6),2);
-            fs.unlinkSync("./decryptedTemp.3dMii");
             return miiJson;
         }
         let qrCode;
@@ -1406,8 +1404,7 @@ var exports={
         }
         if (qrCode) {
             var data = decodeAesCcm(new Uint8Array(qrCode));
-            fs.writeFileSync("./decryptedTemp.3dMii",Buffer.from(data));
-            return Promise.resolve(readMii());
+            return Promise.resolve(readMii(Buffer.from(data)));
         } else {
             console.error('Failed to decode QR code');
         }
@@ -1635,14 +1632,14 @@ var exports={
                     buffers.push(parseInt(toWrite[i],2));
                 }
                 const buffer = Buffer.from(buffers);
-                fs.writeFileSync(outPath, buffer);
+                return buffer;
             }
-            makeMiiBinary(mii);
-            var encryptedData = Buffer.from(encodeAesCcm(new Uint8Array(fs.readFileSync(outPath))));
-            fs.writeFileSync(outPath,encryptedData);
-            await QRCode.toFile('./'+mii.name+'Output.png', [{ data: fs.readFileSync(outPath), mode: 'byte' }], {type: 'png'}, function (err) {
-                if (err) throw err;
-            });
+            const miiBinary = makeMiiBinary(mii);
+            var encryptedData = Buffer.from(encodeAesCcm(new Uint8Array(miiBinary)));
+            const qrBuffer = await QRCode.toBuffer(
+                [{ data: encryptedData, mode: 'byte' }],
+                { type: 'png' }
+            );
             var studioMii=new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
             studioMii[0x16] = mii.info.gender==="Male"?0:1;
             studioMii[0x15] = favCols.indexOf(mii.info.favColor);
@@ -1705,15 +1702,15 @@ var exports={
             studioMii[0x1F] = mii.mole.size;
             studioMii[0x21] = mii.mole.xPos;
             studioMii[0x22] = mii.mole.yPos;
+            let miiPNGBuf = null;
             if(fflRes===null||fflRes===undefined){
-                await this.render3DSMiiWithStudio(jsonIn,"./temp.png");
+                miiPNGBuf = await this.render3DSMiiWithStudio(jsonIn);
             }
             else{
-                var buf=await this.render3DSMii(jsonIn,fflRes);
-                fs.writeFileSync("./temp.png",buf);
+                miiPNGBuf = await this.render3DSMii(jsonIn,fflRes);
             }
-            const sec_img = await Jimp.read('temp.png');
-            const fir_img = await Jimp.read(mii.name+'Output.png');
+            const sec_img = await Jimp.read(miiPNGBuf);
+            const fir_img = await Jimp.read(qrBuffer);
             fir_img.resize(424, 424);
             sec_img.resize(100,100);
 
@@ -1733,16 +1730,14 @@ var exports={
                 fir_img.blit(thi_img,232,150);
             }
 
-            fs.unlinkSync("./temp.png");
-            fs.unlinkSync(mii.name+"Output.png");
             fir_img.write(outPath, (err, img) =>
                 resolve(img)
             );
         })
     },
-    render3DSMiiWithStudio:async function(jsonIn,outPath){
+    render3DSMiiWithStudio:async function(jsonIn){
         var studioMii=this.convert3DSMiiToStudio(jsonIn);
-        await downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + studioMii + "&width=270&type=face",outPath);
+        return await downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + studioMii + "&width=270&type=face");
     },
     convertMii:function (jsonIn,typeFrom){
         typeFrom=typeFrom.toLowerCase();
