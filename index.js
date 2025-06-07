@@ -1277,7 +1277,7 @@ var exports={
         return thisMii;
     },
     read3DSQR:async function(binOrPath){
-        function readMii(){
+        function readMii(data){
             var miiJson={
                 info:{},
                 perms:{},
@@ -1291,7 +1291,7 @@ var exports={
                 glasses:{},
                 mole:{}
             };
-            binary=fs.readFileSync("./decryptedTemp.3dMii");
+            binary=data;
             var temp=getBinaryFromAddress(0x18);
             var temp2=getBinaryFromAddress(0x19);
             miiJson.info.birthday=parseInt(temp2.slice(6,8)+temp.slice(0,3),2);
@@ -1384,7 +1384,6 @@ var exports={
             temp2=getBinaryFromAddress(0x47);
             miiJson.mole.xPos=parseInt(temp2.slice(6,8)+temp.slice(0,3),2);
             miiJson.mole.yPos=parseInt(temp2.slice(1,6),2);
-            fs.unlinkSync("./decryptedTemp.3dMii");
             return miiJson;
         }
         let qrCode;
@@ -1406,8 +1405,7 @@ var exports={
         }
         if (qrCode) {
             var data = decodeAesCcm(new Uint8Array(qrCode));
-            fs.writeFileSync("./decryptedTemp.3dMii",Buffer.from(data));
-            return Promise.resolve(readMii());
+            return Promise.resolve(readMii(Buffer.from(data)));
         } else {
             console.error('Failed to decode QR code');
         }
