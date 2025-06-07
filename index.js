@@ -22,7 +22,7 @@ function getKeyByValue(object, value) {
 //If FFLResHigh.dat is in the same directory as Node.js is calling the library from, use it by default
 var _fflRes=null;
 if(fs.existsSync("./FFLResHigh.dat")){
-    _fflRes=fs.readFileSync("./FFLResHigh.dat");
+    _fflRes=new Uint8Array(fs.readFileSync("./FFLResHigh.dat",""));
 }
 
 var binary;
@@ -1134,7 +1134,7 @@ async function renderMii(studioMii,fflRes=_fflRes) {
     new THREE.MeshBasicMaterial({ color: 0x00ffff })
   );
   scene.add(box);
-  const initResult = await initializeFFL(fflRes, moduleFFL ?? ModuleFFL);
+  const initResult = await initializeFFL(fflRes, ModuleFFL);
   moduleFFL = initResult.module;
 
   updateCharModelInScene(studioMii, FFLCharModelDescDefault); // Use default expression.
@@ -1167,7 +1167,7 @@ async function renderMii(studioMii,fflRes=_fflRes) {
   return canvas.toBuffer('image/png');
 }
 
-module.exports={
+var exports={
     readWiiBin:function(binOrPath){
         var thisMii={
             info:{},
@@ -1521,7 +1521,7 @@ module.exports={
         }
         fs.writeFileSync(outPath, Buffer.from(buffers));
     },
-    write3DSQR:function(jsonIn,outPath,fflRes=_fflRes){
+    write3DSQR:async function(jsonIn,outPath,fflRes=_fflRes){
         return new Promise(async (resolve, reject) => {
             var mii=jsonIn;
             function makeMiiBinary(mii){
@@ -1640,26 +1640,10 @@ module.exports={
             makeMiiBinary(mii);
             var encryptedData = Buffer.from(encodeAesCcm(new Uint8Array(fs.readFileSync(outPath))));
             fs.writeFileSync(outPath,encryptedData);
-            QRCode.toFile('./'+mii.name+'Output.png', [{ data: fs.readFileSync(outPath), mode: 'byte' }], {type: 'png'}, function (err) {
+            await QRCode.toFile('./'+mii.name+'Output.png', [{ data: fs.readFileSync(outPath), mode: 'byte' }], {type: 'png'}, function (err) {
                 if (err) throw err;
             });
             var studioMii=new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
-            function encodeStudio(studio) {
-                function byteToString(int){
-                    var str = int.toString(16);
-                    if(str.length < 2)str = '0' + str;
-                    return str;
-                }
-                var n = 0;
-                var eo;
-                var dest = byteToString(n);
-                for (var i = 0; i < studio.length; i++) {
-                    eo = (7 + (studio[i] ^ n)) & 0xFF;
-                    n = eo;
-                    dest += byteToString(eo);
-                }
-                return dest;
-            }
             studioMii[0x16] = mii.info.gender==="Male"?0:1;
             studioMii[0x15] = favCols.indexOf(mii.info.favColor);
             studioMii[0x1E] = mii.info.height;
@@ -1728,116 +1712,37 @@ module.exports={
                 var buf=await this.render3DSMii(jsonIn,fflRes);
                 fs.writeFileSync("./temp.png",buf);
             }
-            
+            const sec_img = await Jimp.read('temp.png');
             const fir_img = await Jimp.read(mii.name+'Output.png');
-            const sec_img = await Jimp.read('temp.png')
             fir_img.resize(424, 424);
-            sec_img.resize(130,130);
+            sec_img.resize(100,100);
 
             const canvas = new Jimp(sec_img.bitmap.width, sec_img.bitmap.height, 0xFFFFFFFF);
             canvas.composite(sec_img, 0, 0);
-            fir_img.blit(canvas, 212-130/2,212-130/2);
+            fir_img.blit(canvas, 212-100/2,212-100/2);
             const font = await Jimp.loadFont(Jimp.FONT_SANS_16_BLACK)
             
             fir_img.print(font, 0, 50, {
                 text: mii.name,
                 alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
                 alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
-            }, 424, 424);
-
-            const thi_img = await Jimp.read(path.join(__dirname, 'crown.jpg'));
-            thi_img.resize(40,20);
-            if(mii.info.type==="Special") fir_img.blit(thi_img,232,150);
+            }, 424, 395);
+            if(mii.info.type==="Special"){
+                const thi_img = await Jimp.read(path.join(__dirname, 'crown.jpg'));
+                thi_img.resize(40,20);
+                fir_img.blit(thi_img,232,150);
+            }
 
             fs.unlinkSync("./temp.png");
             fs.unlinkSync(mii.name+"Output.png");
-
             fir_img.write(outPath, (err, img) =>
                 resolve(img)
             );
         })
     },
     render3DSMiiWithStudio:async function(jsonIn,outPath){
-        var mii=jsonIn;
-        var studioMii=new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
-        function encodeStudio(studio) {
-            function byteToString(int){
-                var str = int.toString(16);
-                if(str.length < 2)str = '0' + str;
-                return str;
-            }
-            var n = 0;
-            var eo;
-            var dest = byteToString(n);
-            for (var i = 0; i < studio.length; i++) {
-                eo = (7 + (studio[i] ^ n)) & 0xFF;
-                n = eo;
-                dest += byteToString(eo);
-            }
-            return dest;
-        }
-        studioMii[0x16] = mii.info.gender==="Male"?0:1;
-        studioMii[0x15] = favCols.indexOf(mii.info.favColor);
-        studioMii[0x1E] = mii.info.height;
-        studioMii[2] = mii.info.weight;
-        studioMii[0x13] = tables.faces[mii.face.shape];
-        studioMii[0x11] = skinCols.indexOf(mii.face.col);
-        studioMii[0x14] = faceFeatures3DS.indexOf(mii.face.feature);
-        studioMii[0x12] = makeups3DS.indexOf(mii.face.makeup);
-        studioMii[0x1D] = tables.hairs[mii.hair.style[0]][mii.hair.style[1]];
-        studioMii[0x1B] = hairCols.indexOf(mii.hair.col);
-        if (!studioMii[0x1B]) studioMii[0x1B] = 8;
-        studioMii[0x1C] = mii.hair.flipped?1:0;
-        studioMii[7] = tables.eyes[mii.eyes.type[0]][mii.eyes.type[1]];
-        studioMii[4] = eyeCols.indexOf(mii.eyes.col) + 8;
-        studioMii[6] = mii.eyes.size;
-        studioMii[3] = mii.eyes.squash;
-        studioMii[5] = mii.eyes.rot;
-        studioMii[8] = mii.eyes.distApart;
-        studioMii[9] = mii.eyes.yPos;
-        studioMii[0xE] = tables.eyebrows[mii.eyebrows.style[0]][mii.eyebrows.style[1]];
-        studioMii[0xB] = hairCols.indexOf(mii.eyebrows.col);
-        if (!studioMii[0xB]) studioMii[0xB] = 8;
-        studioMii[0xD] = mii.eyebrows.size;
-        studioMii[0xA] = mii.eyebrows.squash;
-        studioMii[0xC] = mii.eyebrows.rot;
-        studioMii[0xF] = mii.eyebrows.distApart;
-        studioMii[0x10] = mii.eyebrows.yPos+3;
-        studioMii[0x2C] = tables.noses[mii.nose.type[0]][mii.nose.type[1]];
-        studioMii[0x2B] = mii.nose.size;
-        studioMii[0x2D] = mii.nose.yPos;
-        studioMii[0x26] = tables.mouths[mii.mouth.type[0]][mii.mouth.type[1]];
-        studioMii[0x24] = mouthCols3DS.indexOf(mii.mouth.col);
-        if (studioMii[0x24] < 4) {
-            studioMii[0x24] += 19;
-        } else {
-            studioMii[0x24] = 0;
-        }
-        studioMii[0x25] = mii.mouth.size;
-        studioMii[0x23] = mii.mouth.squash;
-        studioMii[0x27] = mii.mouth.yPos;
-        studioMii[0x29] = mii.facialHair.mustacheType;
-        studioMii[1] = mii.facialHair.beardType;
-        studioMii[0] = hairCols.indexOf(mii.facialHair.col);
-        if (!studioMii[0]) studioMii[0] = 8;
-        studioMii[0x28] = mii.facialHair.mustacheSize;
-        studioMii[0x2A] = mii.facialHair.mustacheYPos;
-        studioMii[0x19] = mii.glasses.type;
-        studioMii[0x17] = glassesCols3DS.indexOf(mii.glasses.col);
-        if (!studioMii[0x17]) {
-            studioMii[0x17] = 8;
-        } else if (studioMii[0x17] < 6) {
-            studioMii[0x17] += 13;
-        } else {
-            studioMii[0x17] = 0;
-        }
-        studioMii[0x18] = mii.glasses.size;
-        studioMii[0x1A] = mii.glasses.yPos;
-        studioMii[0x20] = mii.mole.on?1:0;
-        studioMii[0x1F] = mii.mole.size;
-        studioMii[0x21] = mii.mole.xPos;
-        studioMii[0x22] = mii.mole.yPos;
-        await downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + encodeStudio(studioMii) + "&width=270&type=face",outPath);
+        var studioMii=this.convert3DSMiiToStudio(jsonIn);
+        await downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + studioMii + "&width=270&type=face",outPath);
     },
     convertMii:function (jsonIn,typeFrom){
         typeFrom=typeFrom.toLowerCase();
@@ -2177,7 +2082,90 @@ module.exports={
             return instrs;
         }
     },
+    convert3DSMiiToStudio:function(jsonIn){
+        var mii=jsonIn;
+        var studioMii=new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
+        function encodeStudio(studio) {
+            function byteToString(int){
+                var str = int.toString(16);
+                if(str.length < 2)str = '0' + str;
+                return str;
+            }
+            var n = 0;
+            var eo;
+            var dest = byteToString(n);
+            for (var i = 0; i < studio.length; i++) {
+                eo = (7 + (studio[i] ^ n)) & 0xFF;
+                n = eo;
+                dest += byteToString(eo);
+            }
+            return dest;
+        }
+        studioMii[0x16] = mii.info.gender==="Male"?0:1;
+        studioMii[0x15] = favCols.indexOf(mii.info.favColor);
+        studioMii[0x1E] = mii.info.height;
+        studioMii[2] = mii.info.weight;
+        studioMii[0x13] = tables.faces[mii.face.shape];
+        studioMii[0x11] = skinCols.indexOf(mii.face.col);
+        studioMii[0x14] = faceFeatures3DS.indexOf(mii.face.feature);
+        studioMii[0x12] = makeups3DS.indexOf(mii.face.makeup);
+        studioMii[0x1D] = tables.hairs[mii.hair.style[0]][mii.hair.style[1]];
+        studioMii[0x1B] = hairCols.indexOf(mii.hair.col);
+        if (!studioMii[0x1B]) studioMii[0x1B] = 8;
+        studioMii[0x1C] = mii.hair.flipped?1:0;
+        studioMii[7] = tables.eyes[mii.eyes.type[0]][mii.eyes.type[1]];
+        studioMii[4] = eyeCols.indexOf(mii.eyes.col) + 8;
+        studioMii[6] = mii.eyes.size;
+        studioMii[3] = mii.eyes.squash;
+        studioMii[5] = mii.eyes.rot;
+        studioMii[8] = mii.eyes.distApart;
+        studioMii[9] = mii.eyes.yPos;
+        studioMii[0xE] = tables.eyebrows[mii.eyebrows.style[0]][mii.eyebrows.style[1]];
+        studioMii[0xB] = hairCols.indexOf(mii.eyebrows.col);
+        if (!studioMii[0xB]) studioMii[0xB] = 8;
+        studioMii[0xD] = mii.eyebrows.size;
+        studioMii[0xA] = mii.eyebrows.squash;
+        studioMii[0xC] = mii.eyebrows.rot;
+        studioMii[0xF] = mii.eyebrows.distApart;
+        studioMii[0x10] = mii.eyebrows.yPos+3;
+        studioMii[0x2C] = tables.noses[mii.nose.type[0]][mii.nose.type[1]];
+        studioMii[0x2B] = mii.nose.size;
+        studioMii[0x2D] = mii.nose.yPos;
+        studioMii[0x26] = tables.mouths[mii.mouth.type[0]][mii.mouth.type[1]];
+        studioMii[0x24] = mouthCols3DS.indexOf(mii.mouth.col);
+        if (studioMii[0x24] < 4) {
+            studioMii[0x24] += 19;
+        } else {
+            studioMii[0x24] = 0;
+        }
+        studioMii[0x25] = mii.mouth.size;
+        studioMii[0x23] = mii.mouth.squash;
+        studioMii[0x27] = mii.mouth.yPos;
+        studioMii[0x29] = mii.facialHair.mustacheType;
+        studioMii[1] = mii.facialHair.beardType;
+        studioMii[0] = hairCols.indexOf(mii.facialHair.col);
+        if (!studioMii[0]) studioMii[0] = 8;
+        studioMii[0x28] = mii.facialHair.mustacheSize;
+        studioMii[0x2A] = mii.facialHair.mustacheYPos;
+        studioMii[0x19] = mii.glasses.type;
+        studioMii[0x17] = glassesCols3DS.indexOf(mii.glasses.col);
+        if (!studioMii[0x17]) {
+            studioMii[0x17] = 8;
+        } else if (studioMii[0x17] < 6) {
+            studioMii[0x17] += 13;
+        } else {
+            studioMii[0x17] = 0;
+        }
+        studioMii[0x18] = mii.glasses.size;
+        studioMii[0x1A] = mii.glasses.yPos;
+        studioMii[0x20] = mii.mole.on?1:0;
+        studioMii[0x1F] = mii.mole.size;
+        studioMii[0x21] = mii.mole.xPos;
+        studioMii[0x22] = mii.mole.yPos;
+        return encodeStudio(studioMii);
+    },
     render3DSMii:async function(jsonIn,fflRes=_fflRes){
-        return await renderMii("000d157179788288a1a7b6bcc1d2e1fdf8020910171e1e2534373e3b444b5b626d747d707a707d787a7f869699a2ad",fflRes);
+        return await renderMii(this.convert3DSMiiToStudio(jsonIn),fflRes);
     }
 }
+module.exports=exports;
