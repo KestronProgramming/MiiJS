@@ -1730,34 +1730,54 @@ var exports={
             studioMii[0x21] = mii.mole.xPos;
             studioMii[0x22] = mii.mole.yPos;
             let miiPNGBuf = null;
-            if(fflRes===null||fflRes===undefined){
+            let renderedWithStudio = fflRes===null || fflRes===undefined; 
+            if(renderedWithStudio){
                 miiPNGBuf = await this.render3DSMiiWithStudio(jsonIn);
             }
             else{
                 miiPNGBuf = await this.render3DSMii(jsonIn,fflRes);
             }
-            const sec_img = await Jimp.read(miiPNGBuf);
-            const fir_img = await Jimp.read(qrBuffer);
-            fir_img.resize(424, 424);
-            sec_img.resize(100,100);
+            const main_img = await Jimp.read(qrBuffer);
+            main_img.resize(424, 424, Jimp.RESIZE_NEAREST_NEIGHBOR); // Don't anti-alias the QR code
+            
+            let miiSize, miiZoomFactor, miiYOffset;
+            if (renderedWithStudio) {
+                miiSize = 100;
+                miiZoomFactor = 1; 
+                miiYOffset = -15;
 
-            const canvas = new Jimp(sec_img.bitmap.width, sec_img.bitmap.height, 0xFFFFFFFF);
-            canvas.composite(sec_img, 0, 0);
-            fir_img.blit(canvas, 212-100/2,212-100/2);
+            } else {
+                miiSize = 100;
+                miiZoomFactor = 1.25; 
+                miiYOffset = -5;
+            }
+            const mii_img = await Jimp.read(miiPNGBuf);
+            mii_img.resize(miiSize*miiZoomFactor, miiSize*miiZoomFactor, Jimp.RESIZE_BICUBIC);
+            mii_img.crop(
+                (miiSize*miiZoomFactor - 100) / 2,
+                (miiSize*miiZoomFactor - 100) / 2,
+                miiSize,
+                miiSize
+            );
+
+            const canvas = new Jimp(mii_img.bitmap.width, mii_img.bitmap.height, 0xFFFFFFFF);
+            canvas.composite(mii_img, 0, miiYOffset);
+            main_img.blit(canvas, 212-100/2, 212-100/2);
             const font = await Jimp.loadFont(Jimp.FONT_SANS_16_BLACK)
             
-            fir_img.print(font, 0, 50, {
+            main_img.print(font, 0, 55, {
                 text: mii.name,
                 alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
                 alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
             }, 424, 395);
+            
             if(mii.info.type==="Special"){
-                const thi_img = await Jimp.read(path.join(__dirname, 'crown.jpg'));
-                thi_img.resize(40,20);
-                fir_img.blit(thi_img,225,160);
+                const crown_img = await Jimp.read(path.join(__dirname, 'crown.jpg'));
+                crown_img.resize(40,20);
+                main_img.blit(crown_img,225,160);
             }
 
-            fir_img.write(outPath, (err, img) =>
+            main_img.write(outPath, (err, img) =>
                 resolve(img)
             );
         })
