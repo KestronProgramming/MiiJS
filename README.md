@@ -45,7 +45,7 @@ Here is a list of discrepancies this function attempts to handle.
  - 3DS and Wii U
     - Open Mii Maker, select "QR Code/Image Options", and then select the respective QR Code option, be it scanning a QR code or saving a Mii as a QR code.
 
--# If you are unable to transfer to the console you wish to, you can use the `generateInstructions` function provided here and manually recreate the Mii on the console using the provided instructions.
+<sub>If you are unable to transfer to the console you wish to, you can use the `generateInstructions` function provided here and manually recreate the Mii on the console using the provided instructions.</sub>
 
 # Credits
  - [kazuki-4ys' MiiInfoEditorCTR](https://github.com/kazuki-4ys/kazuki-4ys.github.io/tree/master/web_apps/MiiInfoEditorCTR), I repurposed how to decrypt and reencrypt the QR codes from here, including repurposing the asmCrypto.js file in its entirety with very small modifications (it has since been stripped down to only include the functions this library uses). I believe I also modified the code for rendering the Mii using Nintendo's Mii Studio from here as well, though I do not remember for certain.
