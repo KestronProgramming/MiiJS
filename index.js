@@ -1,9 +1,11 @@
 const fs = require('fs');
-const { createCanvas, loadImage, ImageData } = require('canvas');
+const nodeCanvas = require('canvas');
+const { createCanvas, loadImage, ImageData } = nodeCanvas;
 const jsQR = require('jsqr');
 const Jimp = require('jimp');
 const THREE = require('three');
-const QRCode = require('qrcode');
+const QRCodeStyling = require("qr-code-styling");
+const { JSDOM } = require("jsdom");
 const httpsLib = require('https');
 const asmCrypto=require("./asmCrypto.js");
 const path=require("path");
@@ -25,9 +27,8 @@ if(fs.existsSync("./FFLResHigh.dat")){
     _fflRes=new Uint8Array(fs.readFileSync("./FFLResHigh.dat",""));
 }
 
-var binary;
-function getBinaryFromAddress(addr){//EG: 0x20
-    let byte = binary.readUInt8(addr);
+function getBinaryFromAddress(addr, bin){
+    let byte = bin.readUInt8(addr);
     let binaryString = '';
     for (let i = 7; i >= 0; i--) {
         binaryString += ((byte >> i) & 1) ? '1' : '0';
@@ -1177,94 +1178,99 @@ var exports={
             glasses:{},
             facialHair:{}
         };
+
+        let data;
         if(/[^01]/ig.test(binOrPath)){
-            binary = fs.readFileSync(binOrPath);
+            data = fs.readFileSync(binOrPath);
         }
         else{
-            binary=Buffer.from(binOrPath);
+            data=Buffer.from(binOrPath);
         }
+
+        const get = address => getBinaryFromAddress(address, data);
+
         var name="";
         for(var i=0;i<10;i++){
-            name+=binary.slice(3+i*2, 4+i*2)+"";
+            name+=data.slice(3+i*2, 4+i*2)+"";
         }
         thisMii.name=name.replaceAll("\x00","");
         var cname="";
         for(var i=0;i<10;i++){
-            cname+=binary.slice(55+i*2, 56+i*2)+"";
+            cname+=data.slice(55+i*2, 56+i*2)+"";
         }
         thisMii.creatorName=cname.replaceAll("\x00","");
         thisMii.info.creatorName=thisMii.creatorName;
         thisMii.info.name=thisMii.name;//Up to ten characters
-        thisMii.info.gender=getBinaryFromAddress(0x00)[1]==="1"?"Female":"Male";//0 for Male, 1 for Female
-        thisMii.info.miiId=parseInt(getBinaryFromAddress(0x18),2).toString(16)+parseInt(getBinaryFromAddress(0x19),2).toString(16)+parseInt(getBinaryFromAddress(0x1A),2).toString(16)+parseInt(getBinaryFromAddress(0x1B),2).toString(16);
-        thisMii.info.systemId=parseInt(getBinaryFromAddress(0x1C),2).toString(16)+parseInt(getBinaryFromAddress(0x1D),2).toString(16)+parseInt(getBinaryFromAddress(0x1E),2).toString(16)+parseInt(getBinaryFromAddress(0x1F),2).toString(16);
-        var temp=getBinaryFromAddress(0x20);
+        thisMii.info.gender=get(0x00)[1]==="1"?"Female":"Male";//0 for Male, 1 for Female
+        thisMii.info.miiId=parseInt(get(0x18),2).toString(16)+parseInt(get(0x19),2).toString(16)+parseInt(get(0x1A),2).toString(16)+parseInt(get(0x1B),2).toString(16);
+        thisMii.info.systemId=parseInt(get(0x1C),2).toString(16)+parseInt(get(0x1D),2).toString(16)+parseInt(get(0x1E),2).toString(16)+parseInt(get(0x1F),2).toString(16);
+        var temp=get(0x20);
         thisMii.face.shape=parseInt(temp.slice(0,3),2);//0-7
         thisMii.face.col=skinCols[parseInt(temp.slice(3,6),2)];//0-5
-        temp=getBinaryFromAddress(0x21);
-        thisMii.face.feature=wiiFaceFeatures[parseInt(getBinaryFromAddress(0x20).slice(6,8)+temp.slice(0,2),2)];//0-11
+        temp=get(0x21);
+        thisMii.face.feature=wiiFaceFeatures[parseInt(get(0x20).slice(6,8)+temp.slice(0,2),2)];//0-11
         thisMii.info.mingle=temp[5]==="0";//0 for Mingle, 1 for Don't Mingle
-        temp=getBinaryFromAddress(0x2C);
+        temp=get(0x2C);
         for(var i=0;i<12;i++){
             if(wiiNoses[i]===parseInt(temp.slice(0,4),2)){
                 thisMii.nose.type=i;
             }
         }
         thisMii.nose.size=parseInt(temp.slice(4,8),2);
-        thisMii.nose.yPos=parseInt(getBinaryFromAddress(0x2D).slice(0,5),2);//From top to bottom, 0-18, default 9
-        temp=getBinaryFromAddress(0x2E);
+        thisMii.nose.yPos=parseInt(get(0x2D).slice(0,5),2);//From top to bottom, 0-18, default 9
+        temp=get(0x2E);
         thisMii.mouth.type=mouthTable[""+parseInt(temp.slice(0,5),2)];//0-23, Needs lookup table
         thisMii.mouth.col=wiiMouthColors[parseInt(temp.slice(5,7),2)];//0-2, refer to mouthColors array
-        temp2=getBinaryFromAddress(0x2F);
+        temp2=get(0x2F);
         thisMii.mouth.size=parseInt(temp[7]+temp2.slice(0,3),2);//0-8, default 4
         thisMii.mouth.yPos=parseInt(temp2.slice(3,8),2);//0-18, default 9, from top to bottom
-        temp=getBinaryFromAddress(0x00);
-        var temp2=getBinaryFromAddress(0x01);
+        temp=get(0x00);
+        var temp2=get(0x01);
         thisMii.info.birthMonth=parseInt(temp.slice(2,6),2);
         thisMii.info.birthday=parseInt(temp.slice(6,8)+temp2.slice(0,3),2);
         thisMii.info.favColor=favCols[parseInt(temp2.slice(3,7),2)];//0-11, refer to cols array
         thisMii.info.favorited=temp2[7]==="0"?false:true;
-        thisMii.info.height=parseInt(getBinaryFromAddress(0x16),2);//0-127
-        thisMii.info.weight=parseInt(getBinaryFromAddress(0x17),2);//0-127
-        thisMii.info.downloadedFromCheckMiiOut=getBinaryFromAddress(0x21)[7]==="0"?false:true;
-        temp=getBinaryFromAddress(0x34);
-        temp2=getBinaryFromAddress(0x35);
+        thisMii.info.height=parseInt(get(0x16),2);//0-127
+        thisMii.info.weight=parseInt(get(0x17),2);//0-127
+        thisMii.info.downloadedFromCheckMiiOut=get(0x21)[7]==="0"?false:true;
+        temp=get(0x34);
+        temp2=get(0x35);
         thisMii.mole.on=temp[0]==="0"?false:true;//0 for Off, 1 for On
         thisMii.mole.size=parseInt(temp.slice(1,5),2);//0-8, default 4
         thisMii.mole.xPos=parseInt(temp2.slice(2,7),2);//0-16, Default 2
         thisMii.mole.yPos=parseInt(temp.slice(5,8)+temp2.slice(0,2),2);//Top to bottom
-        temp=getBinaryFromAddress(0x22);
-        temp2=getBinaryFromAddress(0x23);
+        temp=get(0x22);
+        temp2=get(0x23);
         thisMii.hair.type=hairTable[""+parseInt(temp.slice(0,7),2)];//0-71, Needs lookup table
         thisMii.hair.col=hairCols[parseInt(temp[7]+temp2.slice(0,2),2)];//0-7, refer to hairCols array
         thisMii.hair.flipped=temp2[2]==="0"?false:true;
-        temp=getBinaryFromAddress(0x24);
-        temp2=getBinaryFromAddress(0x25);
+        temp=get(0x24);
+        temp2=get(0x25);
         thisMii.eyebrows.type=eyebrowTable[""+parseInt(temp.slice(0,5),2)];//0-23, Needs lookup table
         thisMii.eyebrows.rotation=parseInt(temp.slice(6,8)+temp2.slice(0,2),2);//0-11, default varies based on eyebrow type
-        temp=getBinaryFromAddress(0x26);
-        temp2=getBinaryFromAddress(0x27);
+        temp=get(0x26);
+        temp2=get(0x27);
         thisMii.eyebrows.col=hairCols[parseInt(temp.slice(0,3),2)];
         thisMii.eyebrows.size=parseInt(temp.slice(3,7),2);//0-8, default 4
         thisMii.eyebrows.yPos=(parseInt(temp[7]+temp2.slice(0,4),2))-3;//0-15, default 10
         thisMii.eyebrows.distApart=parseInt(temp2.slice(4,8),2);//0-12, default 2
-        thisMii.eyes.type=eyeTable[parseInt(getBinaryFromAddress(0x28).slice(0,6),2)];//0-47, needs lookup table
-        temp=getBinaryFromAddress(0x29);
+        thisMii.eyes.type=eyeTable[parseInt(get(0x28).slice(0,6),2)];//0-47, needs lookup table
+        temp=get(0x29);
         thisMii.eyes.rotation=parseInt(temp.slice(0,3),2);//0-7, default varies based on eye type
         thisMii.eyes.yPos=parseInt(temp.slice(3,8),2);//0-18, default 12, top to bottom
-        temp=getBinaryFromAddress(0x2A);
+        temp=get(0x2A);
         thisMii.eyes.col=eyeCols[parseInt(temp.slice(0,3),2)];//0-5
         thisMii.eyes.size=parseInt(temp.slice(4,7),2);//0-7, default 4
-        temp2=getBinaryFromAddress(0x2B);
+        temp2=get(0x2B);
         thisMii.eyes.distApart=parseInt(temp[7]+temp2.slice(0,3),2);//0-12, default 2
-        temp=getBinaryFromAddress(0x30);
+        temp=get(0x30);
         thisMii.glasses.type=parseInt(temp.slice(0,4),2);//0-8
         thisMii.glasses.col=wiiGlassesCols[parseInt(temp.slice(4,7),2)];//0-5
-        temp=getBinaryFromAddress(0x31);
+        temp=get(0x31);
         thisMii.glasses.size=parseInt(temp.slice(0,3),2);//0-7, default 4
         thisMii.glasses.yPos=parseInt(temp.slice(3,8),2);//0-20, default 10
-        temp=getBinaryFromAddress(0x32);
-        temp2=getBinaryFromAddress(0x33);
+        temp=get(0x32);
+        temp2=get(0x33);
         thisMii.facialHair.mustacheType=parseInt(temp.slice(0,2),2);//0-3
         thisMii.facialHair.beardType=parseInt(temp.slice(2,4),2);//0-3
         thisMii.facialHair.col=hairCols[parseInt(temp.slice(4,7),2)];//0-7
@@ -1288,97 +1294,97 @@ var exports={
                 glasses:{},
                 mole:{}
             };
-            binary=data;
-            var temp=getBinaryFromAddress(0x18);
-            var temp2=getBinaryFromAddress(0x19);
+            const get = address => getBinaryFromAddress(address, data);
+            var temp=get(0x18);
+            var temp2=get(0x19);
             miiJson.info.birthday=parseInt(temp2.slice(6,8)+temp.slice(0,3),2);
             miiJson.info.birthMonth=parseInt(temp.slice(3,7),2);
             var name="";
             for(var i=0x1A;i<0x2E;i+=2){
-                if(getBinaryFromAddress(i)==="00000000"){
+                if(get(i)==="00000000"){
                     break;
                 }
-                name+=binary.slice(i,i+1);
+                name+=data.slice(i,i+1);
             }
             miiJson.name=name.replaceAll("\x00","");
             var cname="";
             for(var i=0x48;i<0x5C;i+=2){
-                if(getBinaryFromAddress(i)==="00000000"){
+                if(get(i)==="00000000"){
                     break;
                 }
-                cname+=binary.slice(i,i+1);
+                cname+=data.slice(i,i+1);
             }
             miiJson.creatorName=cname.replaceAll("\x00","");
             miiJson.info.name=miiJson.name;
             miiJson.info.creatorName=miiJson.creatorName;
-            miiJson.info.height=parseInt(getBinaryFromAddress(0x2E),2);
-            miiJson.info.weight=parseInt(getBinaryFromAddress(0x2F),2);
+            miiJson.info.height=parseInt(get(0x2E),2);
+            miiJson.info.weight=parseInt(get(0x2F),2);
             miiJson.info.gender=temp[7]==="1"?"Female":"Male";
-            temp=getBinaryFromAddress(0x30);
+            temp=get(0x30);
             miiJson.perms.sharing=temp[7]==="1"?false:true;
             miiJson.info.favColor=favCols[parseInt(temp2.slice(2,6),2)];
-            miiJson.perms.copying=getBinaryFromAddress(0x01)[7]==="1"?true:false;
-            miiJson.hair.style=lookupTable("hairs",parseInt(getBinaryFromAddress(0x32),2),true);
+            miiJson.perms.copying=get(0x01)[7]==="1"?true:false;
+            miiJson.hair.style=lookupTable("hairs",parseInt(get(0x32),2),true);
             miiJson.face.shape=lookupTable("faces",parseInt(temp.slice(3,7),2),false);
             miiJson.face.col=skinCols[parseInt(temp.slice(0,3),2)];
-            temp=getBinaryFromAddress(0x31);
+            temp=get(0x31);
             miiJson.face.feature=faceFeatures3DS[parseInt(temp.slice(4,8),2)];
             miiJson.face.makeup=makeups3DS[parseInt(temp.slice(0,4),2)];
-            temp=getBinaryFromAddress(0x34);
+            temp=get(0x34);
             miiJson.eyes.type=lookupTable("eyes",parseInt(temp.slice(2,8),2),true);
-            temp2=getBinaryFromAddress(0x33);
+            temp2=get(0x33);
             miiJson.hair.col=hairCols[parseInt(temp2.slice(5,8),2)];
             miiJson.hair.flipped=temp2[4]==="0"?false:true;
-            miiJson.eyes.col=eyeCols[parseInt(getBinaryFromAddress(0x35)[7]+temp.slice(0,2),2)];
-            temp=getBinaryFromAddress(0x35);
+            miiJson.eyes.col=eyeCols[parseInt(get(0x35)[7]+temp.slice(0,2),2)];
+            temp=get(0x35);
             miiJson.eyes.size=parseInt(temp.slice(3,7),2);
             miiJson.eyes.squash=parseInt(temp.slice(0,3),2);
-            temp=getBinaryFromAddress(0x36);
-            temp2=getBinaryFromAddress(0x37);
+            temp=get(0x36);
+            temp2=get(0x37);
             miiJson.eyes.rot=parseInt(temp.slice(3,8),2);
             miiJson.eyes.distApart=parseInt(temp2[7]+temp.slice(0,3),2);
             miiJson.eyes.yPos=parseInt(temp2.slice(2,7),2);
-            temp=getBinaryFromAddress(0x38);
+            temp=get(0x38);
             miiJson.eyebrows.style=lookupTable("eyebrows",parseInt(temp.slice(3,8),2),true);
             miiJson.eyebrows.col=hairCols[parseInt(temp.slice(0,3),2)];
-            temp=getBinaryFromAddress(0x39);
+            temp=get(0x39);
             miiJson.eyebrows.size=parseInt(temp.slice(4,8),2);
             miiJson.eyebrows.squash=parseInt(temp.slice(1,4),2);
-            temp=getBinaryFromAddress(0x3A);
+            temp=get(0x3A);
             miiJson.eyebrows.rot=parseInt(temp.slice(4,8),2);
-            temp2=getBinaryFromAddress(0x3B);
+            temp2=get(0x3B);
             miiJson.eyebrows.distApart=parseInt(temp2[7]+temp.slice(0,3),2);
             miiJson.eyebrows.yPos=parseInt(temp2.slice(2,7),2)-3;
-            temp=getBinaryFromAddress(0x3C);
+            temp=get(0x3C);
             miiJson.nose.type=lookupTable("noses",parseInt(temp.slice(3,8),2),true);
-            temp2=getBinaryFromAddress(0x3D);
+            temp2=get(0x3D);
             miiJson.nose.size=parseInt(temp2[7]+temp.slice(0,3),2);
             miiJson.nose.yPos=parseInt(temp2.slice(2,7),2);
-            temp=getBinaryFromAddress(0x3E);
+            temp=get(0x3E);
             miiJson.mouth.type=lookupTable("mouths",parseInt(temp.slice(2,8),2),true);
-            temp2=getBinaryFromAddress(0x3F);
+            temp2=get(0x3F);
             miiJson.mouth.col=mouthCols3DS[parseInt(temp2[7]+temp.slice(0,2),2)];
             miiJson.mouth.size=parseInt(temp2.slice(3,7),2);
             miiJson.mouth.squash=parseInt(temp2.slice(0,3),2);
-            temp=getBinaryFromAddress(0x40);
+            temp=get(0x40);
             miiJson.mouth.yPos=parseInt(temp.slice(3,8),2);
             miiJson.facialHair.mustacheType=parseInt(temp.slice(0,3),2);
-            temp=getBinaryFromAddress(0x42);
+            temp=get(0x42);
             miiJson.facialHair.beardType=parseInt(temp.slice(5,8),2);
             miiJson.facialHair.col=hairCols[parseInt(temp.slice(2,5),2)];
-            temp2=getBinaryFromAddress(0x43);
+            temp2=get(0x43);
             miiJson.facialHair.mustacheSize=parseInt(temp2.slice(6,8)+temp.slice(0,2),2);
             miiJson.facialHair.mustacheYPos=parseInt(temp2.slice(1,6),2);
-            temp=getBinaryFromAddress(0x44);
+            temp=get(0x44);
             miiJson.glasses.type=parseInt(temp.slice(4,8),2);
             miiJson.glasses.col=glassesCols3DS[parseInt(temp.slice(1,4),2)];
-            temp2=getBinaryFromAddress(0x45);
+            temp2=get(0x45);
             miiJson.glasses.size=parseInt(temp2.slice(5,8)+temp[0],2);
             miiJson.glasses.yPos=parseInt(temp2.slice(0,5),2);
-            temp=getBinaryFromAddress(0x46);
+            temp=get(0x46);
             miiJson.mole.on=temp[7]==="0"?false:true;
             miiJson.mole.size=parseInt(temp.slice(3,7),2);
-            temp2=getBinaryFromAddress(0x47);
+            temp2=get(0x47);
             miiJson.mole.xPos=parseInt(temp2.slice(6,8)+temp.slice(0,3),2);
             miiJson.mole.yPos=parseInt(temp2.slice(1,6),2);
             miiJson.console="3DS";
@@ -1641,10 +1647,31 @@ var exports={
             }
             const miiBinary = makeMiiBinary(mii);
             var encryptedData = Buffer.from(encodeAesCcm(new Uint8Array(miiBinary)));
-            const qrBuffer = await QRCode.toBuffer(
-                [{ data: encryptedData, mode: 'byte' }],
-                { type: 'png' }
-            );
+
+            const options = {
+                width: 300,
+                height: 300,
+                data: encryptedData.toString("latin1"),
+                image: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==", // 1x1 gif
+                dotsOptions: {
+                    color: "#000000",
+                    type: "square"
+                },
+                backgroundOptions: {
+                    color: "#ffffff",
+                },
+                imageOptions: {
+                    crossOrigin: "anonymous",
+                    imageSize: 0.4 // Changes how large center area is
+                }
+            }
+            const qrCodeImage = new QRCodeStyling({
+                jsdom: JSDOM,
+                nodeCanvas,
+                ...options
+            });
+            const qrBuffer = Buffer.from( await qrCodeImage.getRawData("png") )
+
             var studioMii=new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
             studioMii[0x16] = mii.info.gender==="Male"?0:1;
             studioMii[0x15] = favCols.indexOf(mii.info.favColor);
@@ -1708,34 +1735,54 @@ var exports={
             studioMii[0x21] = mii.mole.xPos;
             studioMii[0x22] = mii.mole.yPos;
             let miiPNGBuf = null;
-            if(fflRes===null||fflRes===undefined){
+            let renderedWithStudio = fflRes===null || fflRes===undefined; 
+            if(renderedWithStudio){
                 miiPNGBuf = await this.render3DSMiiWithStudio(jsonIn);
             }
             else{
                 miiPNGBuf = await this.render3DSMii(jsonIn,fflRes);
             }
-            const sec_img = await Jimp.read(miiPNGBuf);
-            const fir_img = await Jimp.read(qrBuffer);
-            fir_img.resize(424, 424);
-            sec_img.resize(100,100);
+            const main_img = await Jimp.read(qrBuffer);
+            main_img.resize(424, 424, Jimp.RESIZE_NEAREST_NEIGHBOR); // Don't anti-alias the QR code
+            
+            let miiSize, miiZoomFactor, miiYOffset;
+            if (renderedWithStudio) {
+                miiSize = 100;
+                miiZoomFactor = 1; 
+                miiYOffset = -15;
 
-            const canvas = new Jimp(sec_img.bitmap.width, sec_img.bitmap.height, 0xFFFFFFFF);
-            canvas.composite(sec_img, 0, 0);
-            fir_img.blit(canvas, 212-100/2,212-100/2);
+            } else {
+                miiSize = 100;
+                miiZoomFactor = 1.25; 
+                miiYOffset = -5;
+            }
+            const mii_img = await Jimp.read(miiPNGBuf);
+            mii_img.resize(miiSize*miiZoomFactor, miiSize*miiZoomFactor, Jimp.RESIZE_BICUBIC);
+            mii_img.crop(
+                (miiSize*miiZoomFactor - 100) / 2,
+                (miiSize*miiZoomFactor - 100) / 2,
+                miiSize,
+                miiSize
+            );
+
+            const canvas = new Jimp(mii_img.bitmap.width, mii_img.bitmap.height, 0xFFFFFFFF);
+            canvas.composite(mii_img, 0, miiYOffset);
+            main_img.blit(canvas, 212-100/2, 212-100/2);
             const font = await Jimp.loadFont(Jimp.FONT_SANS_16_BLACK)
             
-            fir_img.print(font, 0, 50, {
+            main_img.print(font, 0, 55, {
                 text: mii.name,
                 alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
                 alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
             }, 424, 395);
+            
             if(mii.info.type==="Special"){
-                const thi_img = await Jimp.read(path.join(__dirname, 'crown.jpg'));
-                thi_img.resize(40,20);
-                fir_img.blit(thi_img,232,150);
+                const crown_img = await Jimp.read(path.join(__dirname, 'crown.jpg'));
+                crown_img.resize(40,20);
+                main_img.blit(crown_img,225,160);
             }
 
-            fir_img.write(outPath, (err, img) =>
+            main_img.write(outPath, (err, img) =>
                 resolve(img)
             );
         })
