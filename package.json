@@ -1,6 +1,6 @@
 {
   "name": "miijs",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Read, Edit, Write, and make Special Miis from a Wiimote binary file or 3DS QR Code to a binary file or QR code",
   "main": "index.js",
   "scripts": {
