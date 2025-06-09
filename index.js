@@ -1276,7 +1276,7 @@ var exports={
         thisMii.facialHair.col=hairCols[parseInt(temp.slice(4,7),2)];//0-7
         thisMii.facialHair.mustacheSize=parseInt(temp[7]+temp2.slice(0,3),2);//0-30, default 20
         thisMii.facialHair.mustacheYPos=parseInt(temp2.slice(3,8),2);//0-16, default 2
-        thisMii.console="Wii";
+        thisMii.console="wii";
         return thisMii;
     },
     read3DSQR:async function(binOrPath){
@@ -1387,7 +1387,7 @@ var exports={
             temp2=get(0x47);
             miiJson.mole.xPos=parseInt(temp2.slice(6,8)+temp.slice(0,3),2);
             miiJson.mole.yPos=parseInt(temp2.slice(1,6),2);
-            miiJson.console="3DS";
+            miiJson.console="3ds";
             return miiJson;
         }
         let qrCode;
@@ -1414,8 +1414,8 @@ var exports={
             console.error('Failed to decode QR code');
         }
     },
-    writeWiiBin:function(jsonIn,outPath){
-        if(jsonIn.console?.toLowerCase()!=="wii"){
+    writeWiiBin:function(jsonIn, outPath){
+        if(jsonIn.console?.toLowerCase() !== "wii"){
             this.convertMii(jsonIn);
         }
         var mii=jsonIn;
@@ -1788,7 +1788,7 @@ var exports={
         })
     },
     render3DSMiiWithStudio:async function(jsonIn){
-        if(!["3ds","wii u"].includes(jsonIn.console)){
+        if(!["3ds","wii u"].includes(jsonIn.console?.toLowerCase())){
             jsonIn=this.convertMii(jsonIn);
         }
         var studioMii=this.convert3DSMiiToStudio(jsonIn);
@@ -1889,7 +1889,7 @@ var exports={
             if(mii.facialHair.beardType>3){
                 mii.facialHair.beardType=3;
             }
-            miiTo.console="Wii";
+            miiTo.console="wii";
         }
         else if(typeFrom==="wii"){
             miiTo={
@@ -1965,7 +1965,7 @@ var exports={
             miiTo.mole.size=mii.mole.size;
             miiTo.mole.xPos=mii.mole.xPos;
             miiTo.mole.yPos=mii.mole.yPos;
-            miiTo.console="3DS";
+            miiTo.console="3ds";
         }
         return miiTo;
     },
@@ -2029,7 +2029,7 @@ var exports={
         return child;
     },
     generateInstructions:function(mii,full){
-        let type=mii.console.toLowerCase();
+        let type=mii.console?.toLowerCase();
         if(type.toLowerCase()==="wii"){
             var instrs={
                 "base":`Select "${mii.info.gender}", and then "Start from Scratch".`,
@@ -2146,7 +2146,7 @@ var exports={
         }
     },
     convert3DSMiiToStudio:function(jsonIn){
-        if(!["3ds","wii u"].includes(jsonIn.console.toLowerCase())){
+        if(!["3ds","wii u"].includes(jsonIn.console?.toLowerCase())){
             jsonIn=this.convertMii(jsonIn);
         }
         var mii=jsonIn;
@@ -2231,7 +2231,7 @@ var exports={
         return encodeStudio(studioMii);
     },
     render3DSMii:async function(jsonIn,fflRes=_fflRes){
-        if(!["3ds","wii u"].includes(jsonIn)){
+        if(!["3ds","wii u"].includes(jsonIn.console?.toLowerCase())){
             jsonIn=this.convertMii(jsonIn);
         }
         return await renderMii(this.convert3DSMiiToStudio(jsonIn),fflRes);
