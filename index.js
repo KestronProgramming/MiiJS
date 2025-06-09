@@ -1072,9 +1072,6 @@ var defaultInstrs={
     }
 };
 
-function isPowerOfTwo(n) {
-  return (n & (n - 1)) === 0 && n !== 0;
-}
 async function renderMii(studioMii,fflRes=_fflRes) {
   var width=600,height=600;
   /* ---------- WebGL 1 context ---------- */
@@ -1273,6 +1270,7 @@ var exports={
         thisMii.facialHair.col=hairCols[parseInt(temp.slice(4,7),2)];//0-7
         thisMii.facialHair.mustacheSize=parseInt(temp[7]+temp2.slice(0,3),2);//0-30, default 20
         thisMii.facialHair.mustacheYPos=parseInt(temp2.slice(3,8),2);//0-16, default 2
+        thisMii.console="Wii";
         return thisMii;
     },
     read3DSQR:async function(binOrPath){
@@ -1383,6 +1381,7 @@ var exports={
             temp2=getBinaryFromAddress(0x47);
             miiJson.mole.xPos=parseInt(temp2.slice(6,8)+temp.slice(0,3),2);
             miiJson.mole.yPos=parseInt(temp2.slice(1,6),2);
+            miiJson.console="3DS";
             return miiJson;
         }
         let qrCode;
@@ -1410,6 +1409,9 @@ var exports={
         }
     },
     writeWiiBin:function(jsonIn,outPath){
+        if(jsonIn.console?.toLowerCase()!=="wii"){
+            this.convertMii(jsonIn);
+        }
         var mii=jsonIn;
         var miiBin="0";
         miiBin+=mii.info.gender==="Male"?"0":"1";
@@ -1519,6 +1521,9 @@ var exports={
         fs.writeFileSync(outPath, Buffer.from(buffers));
     },
     write3DSQR:async function(jsonIn,outPath,fflRes=_fflRes){
+        if(!["3ds","wii u"].includes(jsonIn.console?.toLowerCase())){
+            jsonIn=this.convertMii(jsonIn);
+        }
         return new Promise(async (resolve, reject) => {
             var mii=jsonIn;
             function makeMiiBinary(mii){
@@ -1736,14 +1741,20 @@ var exports={
         })
     },
     render3DSMiiWithStudio:async function(jsonIn){
+        if(!["3ds","wii u"].includes(jsonIn.console)){
+            jsonIn=this.convertMii(jsonIn);
+        }
         var studioMii=this.convert3DSMiiToStudio(jsonIn);
         return await downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + studioMii + "&width=270&type=face");
     },
-    convertMii:function (jsonIn,typeFrom){
-        typeFrom=typeFrom.toLowerCase();
+    convertMii:function(jsonIn){
+        typeFrom=jsonIn.console?.toLowerCase();
+        if(typeFrom===null||typeFrom===undefined){
+            return jsonIn;
+        }
         let mii=jsonIn;
         var miiTo={};
-        if(typeFrom==="3ds"){
+        if(["wii u","3ds"].includes(typeFrom)){
             miiTo={
                 info:{},
                 face:{},
@@ -1831,6 +1842,7 @@ var exports={
             if(mii.facialHair.beardType>3){
                 mii.facialHair.beardType=3;
             }
+            miiTo.console="Wii";
         }
         else if(typeFrom==="wii"){
             miiTo={
@@ -1906,10 +1918,17 @@ var exports={
             miiTo.mole.size=mii.mole.size;
             miiTo.mole.xPos=mii.mole.xPos;
             miiTo.mole.yPos=mii.mole.yPos;
+            miiTo.console="3DS";
         }
         return miiTo;
     },
     make3DSChild:function(dad,mom,options={}){
+        if(!["3ds","wii u"].includes(dad.console?.toLowerCase())){
+            dad=this.convertMii(dad,"wii");
+        }
+        if(!["3ds","wii u"].includes(mom.console?.toLowerCase())){
+            mom=this.convertMii(dad,"wii");
+        }
         var g=options.gender||Math.floor(Math.random()*2)===1?"Male":"Female";
         var child={
             "info":{
@@ -1959,9 +1978,11 @@ var exports={
         }
         child.face.col=skinCols[c[0]+Math.round((c[1]-c[0])/2)];
         child.name=child.info.name;
+        child.type="3DS";
         return child;
     },
-    generateInstructions:function(mii,type,full){
+    generateInstructions:function(mii,full){
+        let type=mii.console.toLowerCase();
         if(type.toLowerCase()==="wii"){
             var instrs={
                 "base":`Select "${mii.info.gender}", and then "Start from Scratch".`,
@@ -2078,6 +2099,9 @@ var exports={
         }
     },
     convert3DSMiiToStudio:function(jsonIn){
+        if(!["3ds","wii u"].includes(jsonIn.console.toLowerCase())){
+            jsonIn=this.convertMii(jsonIn);
+        }
         var mii=jsonIn;
         var studioMii=new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
         function encodeStudio(studio) {
@@ -2160,6 +2184,9 @@ var exports={
         return encodeStudio(studioMii);
     },
     render3DSMii:async function(jsonIn,fflRes=_fflRes){
+        if(!["3ds","wii u"].includes(jsonIn)){
+            jsonIn=this.convertMii(jsonIn);
+        }
         return await renderMii(this.convert3DSMiiToStudio(jsonIn),fflRes);
     }
 }
