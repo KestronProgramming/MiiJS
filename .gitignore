@@ -1,6 +1,8 @@
 .vscode
 .vsls.json
+package-lock.json
 node_modules
 FFLResHigh.dat
 __tests__
 TODO.md
+experiments

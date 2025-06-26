@@ -1,0 +1,91 @@
+{
+    "general":{
+        "type":0,//[Normal,Favorite,Foreign,Special]
+        "gender":0,//["Male","Female"],
+        "favoriteColor":0,//["Red","Orange","Yellow","Lime","Green","Blue","Cyan","Pink","Purple","Brown","White","Black"]
+        "birthday":"4",
+        "birthMonth":"17",
+        "height":100,//Conversion from feet?
+        "weight":55//Conversion from pounds, indexed to height?
+    },
+    "meta":{
+        "creatorName":"",
+        "name":"",
+        "console":"",
+        "miiId":"148",
+        "systemId":"148"
+    },
+    "perms":{
+        "mingle":true,
+        "sharing":true,
+        "copying":true,
+        "fromCheckMiiOut":false
+    },
+    "face":{
+        "type":0,
+        "color":0,//["White","Tanned White","Darker White","Tanned Darker","Mostly Black","Black"],
+        "feature":0,//["None","Blush","Makeup and Blush","Freckles","Bags","Wrinkles on Cheeks","Wrinkles near Eyes","Chin Wrinkle","Makeup","Stubble","Wrinkles near Mouth","Wrinkles"], ["None","Near Eye Creases","Cheek Creases","Far Eye Creases","Near Nose Creases","Giant Bags","Cleft Chin","Chin Crease","Sunken Eyes","Far Cheek Creases","Lines Near Eyes","Wrinkles"]
+        "makeup":0//["None","Blush","Orange Blush","Blue Eyes","Blush 2","Orange Blush 2","Blue Eyes and Blush","Orange Eyes and Blush","Purple Eyes and Blush 2","Freckles","Beard Stubble","Beard and Mustache Stubble"]
+    },
+    "nose": {
+        "page": 0,
+        "type": 0,
+        "size": 4,
+        "yPosition": 8
+    },
+    "mouth":{
+        "page":0,
+        "type":0,
+        "size":0,
+        "yPosition":0,
+        "squash":0,
+        "color":0//["Peach","Red","Pink"], ["Orange","Red","Pink","Peach","Black"]
+    },
+    "mole": {
+        "on": false,
+        "size": 4,
+        "xPosition": 2,
+        "yPosition": 20
+    },
+    "hair":{
+        "page":0,
+        "type":0,
+        "color":0,//["Black","Brown","Red","Reddish Brown","Grey","Light Brown","Dark Blonde","Blonde"]
+        "flipped":false
+    },
+    "eyebrows":{
+        "page":0,
+        "type":0,
+        "rotation":0,
+        "size":0,
+        "yPosition":0,
+        "distanceApart":0,
+        "squash":0,
+        "color":0//["Black","Brown","Red","Reddish Brown","Grey","Light Brown","Dark Blonde","Blonde"]
+    },
+    "eyes":{
+        "page":0,
+        "type":0,
+        "rotation":0,
+        "yPosition":0,
+        "size":0,
+        "distanceApart":0,
+        "squash":0,
+        "color":0//["Black","Grey","Brown","Lime","Blue","Green"]
+    },
+    "glasses":{
+        "type":0,
+        "size":0,
+        "yPosition":0,
+        "color":0//["Grey","Brown","Red","Blue","Yellow","White"], ["Black","Brown","Red","Blue","Yellow","Grey"]
+    },
+    "beard":{
+        "mustache":{
+            "type":0,
+            "size":0,
+            "yPosition":0
+        },
+        "type":0,
+        "color":0//["Black","Brown","Red","Reddish Brown","Grey","Light Brown","Dark Blonde","Blonde"]
+    }
+}

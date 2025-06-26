@@ -15,6 +15,9 @@ const {FFLCharModelDescDefault,createCharModel,initCharModelTextures,initializeF
 const ModuleFFL=require("./ffl/ffl-emscripten-single-file.js");
 const FFLShaderMaterial=require("./ffl/FFLShaderMaterial.js");
 
+// Typedefs for intellisence
+/** @typedef {import('./types').WiiMii} WiiMii */
+
 //Tools
 function Uint8Cat(){
     var destLength = 0
@@ -143,181 +146,362 @@ const lookupTables = {
         "9": 9,
         "7": 10,
     },
-    mouthTable: {
-        '0': '113',
-        '1': '121',
-        '2': '231',
-        '3': '222',
-        '4': '232',
-        '5': '132',
-        '6': '124',
-        '7': '211',
-        '8': '123',
-        '9': '221',
-        '10': '133',
-        '11': '223',
-        '12': '234',
-        '13': '134',
-        '14': '224',
-        '15': '213',
-        '16': '114',
-        '17': '212',
-        '18': '214',
-        '19': '131',
-        '20': '233',
-        '21': '112',
-        '22': '122',
-        '23': '111'
+
+    pages:{
+        mouths: {
+            '0': '1',
+            '1': '1',
+            '2': '2',
+            '3': '2',
+            '4': '2',
+            '5': '1',
+            '6': '1',
+            '7': '2',
+            '8': '1',
+            '9': '2',
+            '10': '1',
+            '11': '2',
+            '12': '2',
+            '13': '1',
+            '14': '2',
+            '15': '2',
+            '16': '1',
+            '17': '2',
+            '18': '2',
+            '19': '1',
+            '20': '2',
+            '21': '1',
+            '22': '1',
+            '23': '1'
+        },
+        eyebrows:{
+            '0': '1',
+            '1': '1',
+            '2': '2',
+            '3': '2',
+            '4': '1',
+            '5': '1',
+            '6': '1',
+            '7': '1',
+            '8': '1',
+            '9': '1',
+            '10': '2',
+            '11': '2',
+            '12': '1',
+            '13': '2',
+            '14': '2',
+            '15': '2',
+            '16': '2',
+            '17': '1',
+            '18': '2',
+            '19': '1',
+            '20': '2',
+            '21': '1',
+            '22': '2',
+            '23': '2'
+        },
+        eyes:{
+            '0': '1',
+            '1': '1',
+            '2': '1',
+            '3': '4',
+            '4': '1',
+            '5': '3',
+            '6': '3',
+            '7': '4',
+            '8': '1',
+            '9': '2',
+            '10': '4',
+            '11': '2',
+            '12': '2',
+            '13': '3',
+            '14': '4',
+            '15': '1',
+            '16': '1',
+            '17': '1',
+            '18': '3',
+            '19': '2',
+            '20': '1',
+            '21': '2',
+            '22': '4',
+            '23': '2',
+            '24': '3',
+            '25': '2',
+            '26': '1',
+            '27': '1',
+            '28': '3',
+            '29': '4',
+            '30': '3',
+            '31': '3',
+            '32': '2',
+            '33': '2',
+            '34': '2',
+            '35': '2',
+            '36': '3',
+            '37': '3',
+            '38': '4',
+            '39': '1',
+            '40': '2',
+            '41': '3',
+            '42': '4',
+            '43': '4',
+            '44': '4',
+            '45': '4',
+            '46': '3',
+            '47': '4'
+        },
+        hairs:{
+            '0': '5',
+            '1': '4',
+            '2': '6',
+            '3': '5',
+            '4': '4',
+            '5': '4',
+            '6': '5',
+            '7': '4',
+            '8': '4',
+            '9': '6',
+            '10': '5',
+            '11': '5',
+            '12': '4',
+            '13': '4',
+            '14': '5',
+            '15': '6',
+            '16': '6',
+            '17': '5',
+            '18': '6',
+            '19': '4',
+            '20': '5',
+            '21': '5',
+            '22': '5',
+            '23': '3',
+            '24': '6',
+            '25': '4',
+            '26': '4',
+            '27': '4',
+            '28': '6',
+            '29': '6',
+            '30': '3',
+            '31': '1',
+            '32': '2',
+            '33': '1',
+            '34': '3',
+            '35': '5',
+            '36': '3',
+            '37': '2',
+            '38': '3',
+            '39': '1',
+            '40': '1',
+            '41': '3',
+            '42': '3',
+            '43': '3',
+            '44': '1',
+            '45': '1',
+            '46': '6',
+            '47': '2',
+            '48': '2',
+            '49': '1',
+            '50': '2',
+            '51': '1',
+            '52': '2',
+            '53': '6',
+            '54': '3',
+            '55': '2',
+            '56': '1',
+            '57': '3',
+            '58': '2',
+            '59': '1',
+            '60': '2',
+            '61': '6',
+            '62': '2',
+            '63': '5',
+            '64': '2',
+            '65': '3',
+            '66': '2',
+            '67': '3',
+            '68': '1',
+            '69': '4',
+            '70': '1',
+            '71': '6'
+        }
     },
-    eyebrowTable: {
-        '0': '121',
-        '1': '112',
-        '2': '231',
-        '3': '212',
-        '4': '134',
-        '5': '124',
-        '6': '111',
-        '7': '113',
-        '8': '133',
-        '9': '122',
-        '10': '221',
-        '11': '211',
-        '12': '131',
-        '13': '223',
-        '14': '222',
-        '15': '213',
-        '16': '224',
-        '17': '114',
-        '18': '214',
-        '19': '132',
-        '20': '232',
-        '21': '123',
-        '22': '233',
-        '23': '234'
-    },
-    eyeTable: {
-        '0': '131',
-        '1': '113',
-        '2': '111',
-        '3': '413',
-        '4': '121',
-        '5': '311',
-        '6': '332',
-        '7': '411',
-        '8': '112',
-        '9': '222',
-        '10': '414',
-        '11': '221',
-        '12': '232',
-        '13': '331',
-        '14': '424',
-        '15': '114',
-        '16': '133',
-        '17': '132',
-        '18': '314',
-        '19': '231',
-        '20': '134',
-        '21': '233',
-        '22': '433',
-        '23': '213',
-        '24': '313',
-        '25': '214',
-        '26': '123',
-        '27': '124',
-        '28': '324',
-        '29': '432',
-        '30': '323',
-        '31': '333',
-        '32': '212',
-        '33': '211',
-        '34': '223',
-        '35': '234',
-        '36': '312',
-        '37': '322',
-        '38': '431',
-        '39': '122',
-        '40': '224',
-        '41': '321',
-        '42': '412',
-        '43': '423',
-        '44': '421',
-        '45': '422',
-        '46': '334',
-        '47': '434'
-    },
-    hairTable: {
-        '0': '534',
-        '1': '413',
-        '2': '632',
-        '3': '521',
-        '4': '422',
-        '5': '433',
-        '6': '522',
-        '7': '434',
-        '8': '414',
-        '9': '612',
-        '10': '512',
-        '11': '513',
-        '12': '411',
-        '13': '421',
-        '14': '511',
-        '15': '624',
-        '16': '621',
-        '17': '533',
-        '18': '622',
-        '19': '423',
-        '20': '532',
-        '21': '524',
-        '22': '531',
-        '23': '312',
-        '24': '614',
-        '25': '432',
-        '26': '412',
-        '27': '424',
-        '28': '613',
-        '29': '634',
-        '30': '314',
-        '31': '134',
-        '32': '211',
-        '33': '111',
-        '34': '334',
-        '35': '514',
-        '36': '313',
-        '37': '231',
-        '38': '321',
-        '39': '122',
-        '40': '121',
-        '41': '323',
-        '42': '331',
-        '43': '311',
-        '44': '112',
-        '45': '113',
-        '46': '631',
-        '47': '221',
-        '48': '212',
-        '49': '123',
-        '50': '223',
-        '51': '131',
-        '52': '232',
-        '53': '623',
-        '54': '332',
-        '55': '233',
-        '56': '114',
-        '57': '324',
-        '58': '213',
-        '59': '133',
-        '60': '224',
-        '61': '611',
-        '62': '234',
-        '63': '523',
-        '64': '214',
-        '65': '333',
-        '66': '222',
-        '67': '322',
-        '68': '124',
-        '69': '431',
-        '70': '132',
-        '71': '633'
+    types:{
+        "mouths": {
+            "0": 6,
+            "1": 1,
+            "2": 2,
+            "3": 4,
+            "4": 5,
+            "5": 5,
+            "6": 10,
+            "7": 0,
+            "8": 7,
+            "9": 1,
+            "10": 8,
+            "11": 7,
+            "12": 11,
+            "13": 11,
+            "14": 10,
+            "15": 6,
+            "16": 9,
+            "17": 3,
+            "18": 9,
+            "19": 2,
+            "20": 8,
+            "21": 3,
+            "22": 4,
+            "23": 0
+        },
+        "eyebrows": {
+            "0": 1,
+            "1": 3,
+            "2": 2,
+            "3": 3,
+            "4": 11,
+            "5": 10,
+            "6": 0,
+            "7": 6,
+            "8": 8,
+            "9": 4,
+            "10": 1,
+            "11": 0,
+            "12": 2,
+            "13": 7,
+            "14": 4,
+            "15": 6,
+            "16": 10,
+            "17": 9,
+            "18": 9,
+            "19": 5,
+            "20": 5,
+            "21": 7,
+            "22": 8,
+            "23": 11
+        },
+        "eyes": {
+            "0": 2,
+            "1": 6,
+            "2": 0,
+            "3": 6,
+            "4": 1,
+            "5": 0,
+            "6": 5,
+            "7": 0,
+            "8": 3,
+            "9": 4,
+            "10": 9,
+            "11": 1,
+            "12": 5,
+            "13": 2,
+            "14": 10,
+            "15": 9,
+            "16": 8,
+            "17": 5,
+            "18": 9,
+            "19": 2,
+            "20": 11,
+            "21": 8,
+            "22": 8,
+            "23": 6,
+            "24": 6,
+            "25": 9,
+            "26": 7,
+            "27": 10,
+            "28": 10,
+            "29": 5,
+            "30": 7,
+            "31": 8,
+            "32": 3,
+            "33": 0,
+            "34": 7,
+            "35": 11,
+            "36": 3,
+            "37": 4,
+            "38": 2,
+            "39": 4,
+            "40": 10,
+            "41": 1,
+            "42": 3,
+            "43": 7,
+            "44": 1,
+            "45": 4,
+            "46": 11,
+            "47": 11
+        },
+        "hairs": {
+            "0": 11,
+            "1": 6,
+            "2": 5,
+            "3": 1,
+            "4": 4,
+            "5": 8,
+            "6": 4,
+            "7": 11,
+            "8": 9,
+            "9": 3,
+            "10": 3,
+            "11": 6,
+            "12": 0,
+            "13": 1,
+            "14": 0,
+            "15": 10,
+            "16": 1,
+            "17": 8,
+            "18": 4,
+            "19": 7,
+            "20": 5,
+            "21": 10,
+            "22": 2,
+            "23": 3,
+            "24": 9,
+            "25": 5,
+            "26": 3,
+            "27": 10,
+            "28": 6,
+            "29": 11,
+            "30": 9,
+            "31": 11,
+            "32": 0,
+            "33": 0,
+            "34": 11,
+            "35": 9,
+            "36": 6,
+            "37": 2,
+            "38": 1,
+            "39": 4,
+            "40": 1,
+            "41": 7,
+            "42": 2,
+            "43": 0,
+            "44": 3,
+            "45": 6,
+            "46": 2,
+            "47": 1,
+            "48": 3,
+            "49": 7,
+            "50": 7,
+            "51": 2,
+            "52": 5,
+            "53": 7,
+            "54": 5,
+            "55": 8,
+            "56": 9,
+            "57": 10,
+            "58": 6,
+            "59": 8,
+            "60": 10,
+            "61": 0,
+            "62": 11,
+            "63": 7,
+            "64": 9,
+            "65": 8,
+            "66": 4,
+            "67": 4,
+            "68": 10,
+            "69": 2,
+            "70": 5,
+            "71": 8
+        }
     },
 
     // 3DS fields
@@ -1238,8 +1422,8 @@ const decoders = {
     boolean: (value, field) => field.invert ? value === 0 : value === 1,
     enum: (value, field) => field.values[value],
     lookup: (value, field, tables) => {
-        const table = tables[field.lookupTable];
-        if (!table) return "ERROR: could not requested lookup table";
+        const table = getNestedProperty(tables, field.lookupTable)
+        if (!table) return "ERROR: could not find requested lookup table";
 
         if (table.indexLookup) {
             if (table.paginated) {
@@ -1262,6 +1446,56 @@ const decoders = {
             return table[value.toString()];
         }
     },
+    lookupPage: (value, field, tables, type) => {
+        const table = getNestedProperty(tables, field.lookupTable)
+        if (!table) return "ERROR: could not find requested lookup table";
+
+        if (table.indexLookup) {
+            if (table.paginated) {
+                // Handle paginated (2D array) lookup
+                for (let page = 0; page < table.values.length; page++) {
+                    for (let index = 0; index < table.values[page].length; index++) {
+                        if (table.values[page][index] === value) {
+                            return [page, index][0];
+                        }
+                    }
+                }
+                return undefined;
+            } else {
+                // Handle non-paginated index lookup
+                return table.values.indexOf(value);
+            }
+        } else if (Array.isArray(table)) {
+            return table[value];
+        } else {
+            return table[value.toString()];
+        }
+    },
+    lookupType: (value, field, tables, type) => {
+        const table = getNestedProperty(tables, field.lookupTable)
+        if (!table) return "ERROR: could not find requested lookup table";
+
+        if (table.indexLookup) {
+            if (table.paginated) {
+                // Handle paginated (2D array) lookup
+                for (let page = 0; page < table.values.length; page++) {
+                    for (let index = 0; index < table.values[page].length; index++) {
+                        if (table.values[page][index] === value) {
+                            return [page, index][1];
+                        }
+                    }
+                }
+                return undefined;
+            } else {
+                // Handle non-paginated index lookup
+                return table.values.indexOf(value);
+            }
+        } else if (Array.isArray(table)) {
+            return table[value];
+        } else {
+            return table[value.toString()];
+        }
+    },
     color: (value, field, tables) => tables[field.colorArray]?.[value] || value
 };
 
@@ -1270,8 +1504,8 @@ const encoders = {
     boolean: (value, field) => field.invert ? (value ? 0 : 1) : (value ? 1 : 0),
     enum: (value, field) => field.values.indexOf(value),
     lookup: (decodedValue, field, tables) => {
-        const table = tables[field.lookupTable];
-        if (!table) return "ERROR: could not requested lookup table";
+        const table = getNestedProperty(tables, field.lookupTable)
+        if (!table) return "ERROR: could not find requested lookup table";
 
         if (table.indexLookup){
             if (table.paginated) {
@@ -1498,119 +1732,121 @@ function jsonToMiiBuffer(miiData, schema, lookupTables = {}, totalBytes = 74) {
 }
 
 const WII_MII_SCHEMA = {
-    'info.gender': { byteOffset: 0x00, bitOffset: 1, bitLength: 1, decoder: 'enum', values: ['Male', 'Female'] },
-    'info.birthMonth': { byteOffset: 0x00, bitOffset: 2, bitLength: 4, decoder: 'number' },
-    'info.birthday': { byteOffset: 0x00, bitOffset: 6, bitLength: 5, decoder: 'number' },
-    'info.favColor': { byteOffset: 0x01, bitOffset: 3, bitLength: 4, decoder: 'color', colorArray: 'favCols' },
-    'info.favorited': { byteOffset: 0x01, bitOffset: 7, bitLength: 1, decoder: 'boolean' },
-    'info.name': { type: 'string', byteOffset: 0x03, maxLength: 10, endianness: "little" },
-    'info.creatorName': { type: 'string', byteOffset: 0x37, maxLength: 10, endianness: "little" },
-    'name': { type: 'string', byteOffset: 0x03, maxLength: 10, endianness: "little" },
-    'creatorName': { type: 'string', byteOffset: 0x37, maxLength: 10, endianness: "little" },
-    'info.height': { byteOffset: 0x16, bitOffset: 0, bitLength: 8, decoder: 'number' },
-    'info.weight': { byteOffset: 0x17, bitOffset: 0, bitLength: 8, decoder: 'number' },
-    'info.mingle': { byteOffset: 0x21, bitOffset: 5, bitLength: 1, decoder: 'boolean', invert: true },
-    'info.downloadedFromCheckMiiOut': { byteOffset: 0x21, bitOffset: 7, bitLength: 1, decoder: 'boolean' },
-    'face.shape': { byteOffset: 0x20, bitOffset: 0, bitLength: 3, decoder: 'number' },
-    'face.col': { byteOffset: 0x20, bitOffset: 3, bitLength: 3, decoder: 'color', colorArray: 'skinCols' },
-    'face.feature': { byteOffset: 0x20, bitOffset: 6, bitLength: 4, decoder: 'lookup', lookupTable: 'wiiFaceFeatures' },
-    'hair.type': { byteOffset: 0x22, bitOffset: 0, bitLength: 7, decoder: 'lookup', lookupTable: 'hairTable' },
-    'hair.col': { byteOffset: 0x22, bitOffset: 7, bitLength: 3, decoder: 'color', colorArray: 'hairCols' },
+    'general.gender': { byteOffset: 0x00, bitOffset: 1, bitLength: 1, decoder: 'number' },
+    'general.birthMonth': { byteOffset: 0x00, bitOffset: 2, bitLength: 4, decoder: 'number' },
+    'general.birthday': { byteOffset: 0x00, bitOffset: 6, bitLength: 5, decoder: 'number' },
+    'general.favoriteColor': { byteOffset: 0x01, bitOffset: 3, bitLength: 4, decoder: 'number' },
+    'meta.name': { type: 'string', byteOffset: 0x03, maxLength: 10, endianness: "little" },
+    'meta.creatorName': { type: 'string', byteOffset: 0x37, maxLength: 10, endianness: "little" },
+    'general.height': { byteOffset: 0x16, bitOffset: 0, bitLength: 8, decoder: 'number' },
+    'general.weight': { byteOffset: 0x17, bitOffset: 0, bitLength: 8, decoder: 'number' },
+    'perms.mingle': { byteOffset: 0x21, bitOffset: 5, bitLength: 1, decoder: 'boolean', invert: true },
+    'perms.fromCheckMiiOut': { byteOffset: 0x21, bitOffset: 7, bitLength: 1, decoder: 'boolean' },
+    'face.type': { byteOffset: 0x20, bitOffset: 0, bitLength: 3, decoder: 'number' },
+    'face.color': { byteOffset: 0x20, bitOffset: 3, bitLength: 3, decoder: 'number' },
+    'face.feature': { byteOffset: 0x20, bitOffset: 6, bitLength: 4, decoder: 'number' },
+    'hair.page': { byteOffset: 0x22, bitOffset: 0, bitLength: 7, decoder: 'lookup', lookupTable: 'hairs' },
+    'hair.type': { byteOffset: 0x22, bitOffset: 0, bitLength: 7, decoder: 'lookup', lookupTable: 'types.hairs' },
+    'hair.color': { byteOffset: 0x22, bitOffset: 7, bitLength: 3, decoder: 'number' },
     'hair.flipped': { byteOffset: 0x23, bitOffset: 2, bitLength: 1, decoder: 'boolean' },
-    'eyebrows.type': { byteOffset: 0x24, bitOffset: 0, bitLength: 5, decoder: 'lookup', lookupTable: 'eyebrowTable' },
+    'eyebrows.page': { byteOffset: 0x24, bitOffset: 0, bitLength: 5, decoder: 'lookup', lookupTable: 'pages.eyebrows' },
+    'eyebrows.type': { byteOffset: 0x24, bitOffset: 0, bitLength: 5, decoder: 'lookup', lookupTable: 'types.eyebrows' },
     'eyebrows.rotation': { byteOffset: 0x24, bitOffset: 6, bitLength: 4, decoder: 'number' },
-    'eyebrows.col': { byteOffset: 0x26, bitOffset: 0, bitLength: 3, decoder: 'color', colorArray: 'hairCols' },
+    'eyebrows.color': { byteOffset: 0x26, bitOffset: 0, bitLength: 3, decoder: 'number' },
     'eyebrows.size': { byteOffset: 0x26, bitOffset: 3, bitLength: 4, decoder: 'number' },
-    'eyebrows.yPos': { byteOffset: 0x26, bitOffset: 7, bitLength: 5, decoder: 'number', offset: -3 },
-    'eyebrows.distApart': { byteOffset: 0x27, bitOffset: 4, bitLength: 4, decoder: 'number' },
-    'eyes.type': { byteOffset: 0x28, bitOffset: 0, bitLength: 6, decoder: 'lookup', lookupTable: 'eyeTable' },
+    'eyebrows.yPosition': { byteOffset: 0x26, bitOffset: 7, bitLength: 5, decoder: 'number', offset: -3 },
+    'eyebrows.distanceApart': { byteOffset: 0x27, bitOffset: 4, bitLength: 4, decoder: 'number' },
+    'eyes.page': { byteOffset: 0x28, bitOffset: 0, bitLength: 6, decoder: 'lookup', lookupTable: 'pages.eyes' },
+    'eyes.type': { byteOffset: 0x28, bitOffset: 0, bitLength: 6, decoder: 'lookup', lookupTable: 'types.eyes' },
     'eyes.rotation': { byteOffset: 0x29, bitOffset: 0, bitLength: 3, decoder: 'number' },
-    'eyes.yPos': { byteOffset: 0x29, bitOffset: 3, bitLength: 5, decoder: 'number' },
-    'eyes.col': { byteOffset: 0x2A, bitOffset: 0, bitLength: 3, decoder: 'color', colorArray: 'eyeCols' },
+    'eyes.yPosition': { byteOffset: 0x29, bitOffset: 3, bitLength: 5, decoder: 'number' },
+    'eyes.color': { byteOffset: 0x2A, bitOffset: 0, bitLength: 3, decoder: 'number' },
     'eyes.size': { byteOffset: 0x2A, bitOffset: 4, bitLength: 3 },
-    'eyes.distApart': { byteOffset: 0x2A, bitOffset: 7, bitLength: 4, decoder: 'number' },
+    'eyes.distanceApart': { byteOffset: 0x2A, bitOffset: 7, bitLength: 4, decoder: 'number' },
     'nose.type': { byteOffset: 0x2C, bitOffset: 0, bitLength: 4, decoder: 'lookup', lookupTable: 'wiiNoses' },
     'nose.size': { byteOffset: 0x2C, bitOffset: 4, bitLength: 4, decoder: 'number' },
-    'nose.yPos': { byteOffset: 0x2D, bitOffset: 0, bitLength: 5, decoder: 'number' },
-    'mouth.type': { byteOffset: 0x2E, bitOffset: 0, bitLength: 5, decoder: 'lookup', lookupTable: 'mouthTable' },
-    'mouth.col': { byteOffset: 0x2E, bitOffset: 5, bitLength: 2, decoder: 'color', colorArray: 'wiiMouthColors' },
+    'nose.yPosition': { byteOffset: 0x2D, bitOffset: 0, bitLength: 5, decoder: 'number' },
+    'mouth.page': { byteOffset: 0x2E, bitOffset: 0, bitLength: 5, decoder: 'lookup', lookupTable: 'pages.mouths' },
+    'mouth.type': { byteOffset: 0x2E, bitOffset: 0, bitLength: 5, decoder: 'lookup', lookupTable: 'types.mouths' },
+    'mouth.color': { byteOffset: 0x2E, bitOffset: 5, bitLength: 2, decoder: 'number' },
     'mouth.size': { byteOffset: 0x2E, bitOffset: 7, bitLength: 4, decoder: 'number' },
-    'mouth.yPos': { byteOffset: 0x2F, bitOffset: 3, bitLength: 5, decoder: 'number' },
+    'mouth.yPosition': { byteOffset: 0x2F, bitOffset: 3, bitLength: 5, decoder: 'number' },
     'glasses.type': { byteOffset: 0x30, bitOffset: 0, bitLength: 4, decoder: 'number' },
-    'glasses.col': { byteOffset: 0x30, bitOffset: 4, bitLength: 3, decoder: 'color', colorArray: 'wiiGlassesCols' },
+    'glasses.color': { byteOffset: 0x30, bitOffset: 4, bitLength: 3, decoder: 'number' },
     'glasses.size': { byteOffset: 0x31, bitOffset: 0, bitLength: 3, decoder: 'number' },
-    'glasses.yPos': { byteOffset: 0x31, bitOffset: 3, bitLength: 5, decoder: 'number' },
-    'facialHair.mustacheType': { byteOffset: 0x32, bitOffset: 0, bitLength: 2, decoder: 'number' },
-    'facialHair.beardType': { byteOffset: 0x32, bitOffset: 2, bitLength: 2, decoder: 'number' },
-    'facialHair.col': { byteOffset: 0x32, bitOffset: 4, bitLength: 3, decoder: 'color', colorArray: 'hairCols' },
-    'facialHair.mustacheSize': { byteOffset: 0x32, bitOffset: 7, bitLength: 4, decoder: 'number' },
-    'facialHair.mustacheYPos': { byteOffset: 0x33, bitOffset: 3, bitLength: 5, decoder: 'number' },
+    'glasses.yPosition': { byteOffset: 0x31, bitOffset: 3, bitLength: 5, decoder: 'number' },
+    'beard.mustache.type': { byteOffset: 0x32, bitOffset: 0, bitLength: 2, decoder: 'number' },
+    'beard.type': { byteOffset: 0x32, bitOffset: 2, bitLength: 2, decoder: 'number' },
+    'beard.color': { byteOffset: 0x32, bitOffset: 4, bitLength: 3, decoder: 'number' },
+    'beard.mustache.size': { byteOffset: 0x32, bitOffset: 7, bitLength: 4, decoder: 'number' },
+    'beard.mustache.yPosition': { byteOffset: 0x33, bitOffset: 3, bitLength: 5, decoder: 'number' },
     'mole.on': { byteOffset: 0x34, bitOffset: 0, bitLength: 1, decoder: 'boolean' },
     'mole.size': { byteOffset: 0x34, bitOffset: 1, bitLength: 4, decoder: 'number' },
-    'mole.yPos': { byteOffset: 0x34, bitOffset: 5, bitLength: 5, decoder: 'number' },
-    'mole.xPos': { byteOffset: 0x35, bitOffset: 2, bitLength: 5, decoder: 'number' }
+    'mole.yPosition': { byteOffset: 0x34, bitOffset: 5, bitLength: 5, decoder: 'number' },
+    'mole.xPosition': { byteOffset: 0x35, bitOffset: 2, bitLength: 5, decoder: 'number' }
 };
 
 const THREEDS_MII_SCHEMA = {
-    'info.birthday': {
+    'general.birthday': {
         bitSpecs: [
             { byteOffset: 0x19, bitOffset: 6, bitLength: 2 },
             { byteOffset: 0x18, bitOffset: 0, bitLength: 3 }
         ],
         decoder: 'number'
     },
-    'info.birthMonth': { byteOffset: 0x18, bitOffset: 3, bitLength: 4, decoder: 'number' },
-    'info.gender': { byteOffset: 0x18, bitOffset: 7, bitLength: 1, decoder: 'enum', values: ['Male', 'Female'] },
-    'info.favColor': { byteOffset: 0x19, bitOffset: 2, bitLength: 4, decoder: 'color', colorArray: 'favCols' },
-    'name': { type: 'string', byteOffset: 0x1A, maxLength: 10, endianness: "little" },
-    'info.name': { type: 'string', byteOffset: 0x1A, maxLength: 10, endianness: "little" },
-    'creatorName': { type: 'string', byteOffset: 0x48, maxLength: 10, endianness: "little" },
-    'info.creatorName': { type: 'string', byteOffset: 0x48, maxLength: 10, endianness: "little" },
-    'info.height': { byteOffset: 0x2E, bitOffset: 0, bitLength: 8, decoder: 'number' },
-    'info.weight': { byteOffset: 0x2F, bitOffset: 0, bitLength: 8, decoder: 'number' },
+    'general.birthMonth': { byteOffset: 0x18, bitOffset: 3, bitLength: 4, decoder: 'number' },
+    'general.gender': { byteOffset: 0x18, bitOffset: 7, bitLength: 1, decoder: 'number' },
+    'general.favoriteColor': { byteOffset: 0x19, bitOffset: 2, bitLength: 4, decoder: 'number' },
+    'meta.name': { type: 'string', byteOffset: 0x1A, maxLength: 10, endianness: "little" },
+    'meta.creatorName': { type: 'string', byteOffset: 0x48, maxLength: 10, endianness: "little" },
+    'general.height': { byteOffset: 0x2E, bitOffset: 0, bitLength: 8, decoder: 'number' },
+    'general.weight': { byteOffset: 0x2F, bitOffset: 0, bitLength: 8, decoder: 'number' },
     'perms.sharing': { byteOffset: 0x30, bitOffset: 7, bitLength: 1, decoder: 'boolean', invert: true },
     'perms.copying': { byteOffset: 0x01, bitOffset: 7, bitLength: 1, decoder: 'boolean' },
-    'face.shape': { byteOffset: 0x30, bitOffset: 3, bitLength: 4, decoder: 'lookup', lookupTable: 'faces' },
-    'face.col': { byteOffset: 0x30, bitOffset: 0, bitLength: 3, decoder: 'color', colorArray: 'skinCols' },
-    'face.feature': { byteOffset: 0x31, bitOffset: 4, bitLength: 4, decoder: 'lookup', lookupTable: 'faceFeatures3DS' },
-    'face.makeup': { byteOffset: 0x31, bitOffset: 0, bitLength: 4, decoder: 'lookup', lookupTable: 'makeups3DS' },
-    'hair.style': { byteOffset: 0x32, bitOffset: 0, bitLength: 8, decoder: 'lookup', lookupTable: 'hairs' },
-    'hair.col': { byteOffset: 0x33, bitOffset: 5, bitLength: 3, decoder: 'color', colorArray: 'hairCols' },
+    'face.type': { byteOffset: 0x30, bitOffset: 3, bitLength: 4, decoder: 'lookup', lookupTable: 'faces' },
+    'face.color': { byteOffset: 0x30, bitOffset: 0, bitLength: 3, decoder: 'number' },
+    'face.feature': { byteOffset: 0x31, bitOffset: 4, bitLength: 4, decoder: 'number' },
+    'face.makeup': { byteOffset: 0x31, bitOffset: 0, bitLength: 4, decoder: 'number' },
+    'hair.page': { byteOffset: 0x32, bitOffset: 0, bitLength: 8, decoder: 'lookupPage', lookupTable: 'hairs' },//qk
+    'hair.type': { byteOffset: 0x32, bitOffset: 0, bitLength: 8, decoder: 'lookupType', lookupTable: 'hairs' },//qk
+    'hair.color': { byteOffset: 0x33, bitOffset: 5, bitLength: 3, decoder: 'number' },
     'hair.flipped': { byteOffset: 0x33, bitOffset: 4, bitLength: 1, decoder: 'boolean' },
-    'eyes.type': { byteOffset: 0x34, bitOffset: 2, bitLength: 6, decoder: 'lookup', lookupTable: 'eyes' },
-    'eyes.col': { 
+    'eyes.page': { byteOffset: 0x34, bitOffset: 2, bitLength: 6, decoder: 'lookupPage', lookupTable: 'eyes' },//qk
+    'eyes.type': { byteOffset: 0x34, bitOffset: 2, bitLength: 6, decoder: 'lookupType', lookupTable: 'eyes' },//qk
+    'eyes.color': { 
         bitSpecs: [
             { byteOffset: 0x35, bitOffset: 7, bitLength: 1 },
             { byteOffset: 0x34, bitOffset: 0, bitLength: 2 }
         ],
-        decoder: 'color', 
-        colorArray: 'eyeCols' 
+        decoder: 'number'
     },
     'eyes.size': { byteOffset: 0x35, bitOffset: 3, bitLength: 4, decoder: 'number' },
     'eyes.squash': { byteOffset: 0x35, bitOffset: 0, bitLength: 3, decoder: 'number' },
-    'eyes.rot': { byteOffset: 0x36, bitOffset: 3, bitLength: 5, decoder: 'number' },
-    'eyes.distApart': { 
+    'eyes.rotation': { byteOffset: 0x36, bitOffset: 3, bitLength: 5, decoder: 'number' },
+    'eyes.distanceApart': { 
         bitSpecs: [
             { byteOffset: 0x37, bitOffset: 7, bitLength: 1 },
             { byteOffset: 0x36, bitOffset: 0, bitLength: 3 }
         ],
         decoder: 'number' 
     },
-    'eyes.yPos': { byteOffset: 0x37, bitOffset: 2, bitLength: 5, decoder: 'number' },
-    'eyebrows.style': { byteOffset: 0x38, bitOffset: 3, bitLength: 5, decoder: 'lookup', lookupTable: 'eyebrows' },
-    'eyebrows.col': { byteOffset: 0x38, bitOffset: 0, bitLength: 3, decoder: 'color', colorArray: 'hairCols' },
+    'eyes.yPosition': { byteOffset: 0x37, bitOffset: 2, bitLength: 5, decoder: 'number' },
+    'eyebrows.page': { byteOffset: 0x38, bitOffset: 3, bitLength: 5, decoder: 'lookupPage', lookupTable: 'eyebrows' },//qk
+    'eyebrows.type': { byteOffset: 0x38, bitOffset: 3, bitLength: 5, decoder: 'lookupType', lookupTable: 'eyebrows' },//qk
+    'eyebrows.color': { byteOffset: 0x38, bitOffset: 0, bitLength: 3, decoder: 'number' },
     'eyebrows.size': { byteOffset: 0x39, bitOffset: 4, bitLength: 4, decoder: 'number' },
     'eyebrows.squash': { byteOffset: 0x39, bitOffset: 1, bitLength: 3, decoder: 'number' },
-    'eyebrows.rot': { byteOffset: 0x3A, bitOffset: 4, bitLength: 4, decoder: 'number' },
-    'eyebrows.distApart': {
+    'eyebrows.rotation': { byteOffset: 0x3A, bitOffset: 4, bitLength: 4, decoder: 'number' },
+    'eyebrows.distanceApart': {
         bitSpecs: [
             { byteOffset: 0x3B, bitOffset: 7, bitLength: 1 },
             { byteOffset: 0x3A, bitOffset: 0, bitLength: 3 }
         ],
         decoder: 'number'
     },
-    'eyebrows.yPos': { byteOffset: 0x3B, bitOffset: 2, bitLength: 5, decoder: 'number', offset: -3 },
-    'nose.type': { byteOffset: 0x3C, bitOffset: 3, bitLength: 5, decoder: 'lookup', lookupTable: 'noses' },
+    'eyebrows.yPosition': { byteOffset: 0x3B, bitOffset: 2, bitLength: 5, decoder: 'number', offset: -3 },
+    'nose.page': { byteOffset: 0x3C, bitOffset: 3, bitLength: 5, decoder: 'lookupPage', lookupTable: 'noses' },//qk
+    'nose.type': { byteOffset: 0x3C, bitOffset: 3, bitLength: 5, decoder: 'lookupType', lookupTable: 'noses' },//qk
     'nose.size': {
         bitSpecs: [
             { byteOffset: 0x3D, bitOffset: 7, bitLength: 1 },
@@ -1618,32 +1854,32 @@ const THREEDS_MII_SCHEMA = {
         ],
         decoder: 'number'
     },
-    'nose.yPos': { byteOffset: 0x3D, bitOffset: 2, bitLength: 5, decoder: 'number' },
-    'mouth.type': { byteOffset: 0x3E, bitOffset: 2, bitLength: 6, decoder: 'lookup', lookupTable: 'mouths' },
-    'mouth.col': {
+    'nose.yPosition': { byteOffset: 0x3D, bitOffset: 2, bitLength: 5, decoder: 'number' },
+    'mouth.page': { byteOffset: 0x3E, bitOffset: 2, bitLength: 6, decoder: 'lookupPage', lookupTable: 'mouths' },//qk
+    'mouth.type': { byteOffset: 0x3E, bitOffset: 2, bitLength: 6, decoder: 'lookupType', lookupTable: 'mouths' },//qk
+    'mouth.color': {
         bitSpecs: [
             { byteOffset: 0x3F, bitOffset: 7, bitLength: 1 },
             { byteOffset: 0x3E, bitOffset: 0, bitLength: 2 }
         ],
-        decoder: 'color',
-        colorArray: 'mouthCols3DS'
+        decoder: 'number'
     },
     'mouth.size': { byteOffset: 0x3F, bitOffset: 3, bitLength: 4, decoder: 'number' },
     'mouth.squash': { byteOffset: 0x3F, bitOffset: 0, bitLength: 3, decoder: 'number' },
-    'mouth.yPos': { byteOffset: 0x40, bitOffset: 3, bitLength: 5, decoder: 'number' },
-    'facialHair.mustacheType': { byteOffset: 0x40, bitOffset: 0, bitLength: 3, decoder: 'number' },
-    'facialHair.beardType': { byteOffset: 0x42, bitOffset: 5, bitLength: 3, decoder: 'number' },
-    'facialHair.col': { byteOffset: 0x42, bitOffset: 2, bitLength: 3, decoder: 'color', colorArray: 'hairCols' },
-    'facialHair.mustacheSize': {
+    'mouth.yPosition': { byteOffset: 0x40, bitOffset: 3, bitLength: 5, decoder: 'number' },
+    'beard.mustache.type': { byteOffset: 0x40, bitOffset: 0, bitLength: 3, decoder: 'number' },
+    'beard.type': { byteOffset: 0x42, bitOffset: 5, bitLength: 3, decoder: 'number' },
+    'beard.color': { byteOffset: 0x42, bitOffset: 2, bitLength: 3, decoder: 'number' },
+    'beard.mustache.size': {
         bitSpecs: [
             { byteOffset: 0x43, bitOffset: 6, bitLength: 2 },
             { byteOffset: 0x42, bitOffset: 0, bitLength: 2 }
         ],
         decoder: 'number'
     },
-    'facialHair.mustacheYPos': { byteOffset: 0x43, bitOffset: 1, bitLength: 5, decoder: 'number' },
+    'beard.mustache.yPosition': { byteOffset: 0x43, bitOffset: 1, bitLength: 5, decoder: 'number' },
     'glasses.type': { byteOffset: 0x44, bitOffset: 4, bitLength: 4, decoder: 'number' },
-    'glasses.col': { byteOffset: 0x44, bitOffset: 1, bitLength: 3, decoder: 'color', colorArray: 'glassesCols3DS' },
+    'glasses.color': { byteOffset: 0x44, bitOffset: 1, bitLength: 3, decoder: 'number' },
     'glasses.size': {
         bitSpecs: [
             { byteOffset: 0x45, bitOffset: 5, bitLength: 3 },
@@ -1651,17 +1887,17 @@ const THREEDS_MII_SCHEMA = {
         ],
         decoder: 'number'
     },
-    'glasses.yPos': { byteOffset: 0x45, bitOffset: 0, bitLength: 5, decoder: 'number' },
+    'glasses.yPosition': { byteOffset: 0x45, bitOffset: 0, bitLength: 5, decoder: 'number' },
     'mole.on': { byteOffset: 0x46, bitOffset: 7, bitLength: 1, decoder: 'boolean' },
     'mole.size': { byteOffset: 0x46, bitOffset: 3, bitLength: 4, decoder: 'number' },
-    'mole.xPos': {
+    'mole.xPosition': {
         bitSpecs: [
             { byteOffset: 0x47, bitOffset: 6, bitLength: 2 },
             { byteOffset: 0x46, bitOffset: 0, bitLength: 3 }
         ],
         decoder: 'number'
     },
-    'mole.yPos': { byteOffset: 0x47, bitOffset: 1, bitLength: 5, decoder: 'number' },
+    'mole.yPosition': { byteOffset: 0x47, bitOffset: 1, bitLength: 5, decoder: 'number' },
 };
 
 //Functions for working with the Miis
@@ -1920,6 +2156,13 @@ function convert3DSMiiToStudio(jsonIn) {
     studioMii[0x22] = mii.mole.yPos;
     return encodeStudio(studioMii);
 }
+
+/**
+ * Reads a Wii Mii binary file or binary string and converts it into a WiiMii JSON object.
+ *
+ * @param {string|Buffer} binOrPath - Either a path to a binary file or a binary string
+ * @returns {Promise<WiiMii & { console: 'wii' }>} - The extracted Mii JSON.
+ */
 async function readWiiBin(binOrPath) {
     let data;
     if (/[^01]/ig.test(binOrPath)) {
@@ -1933,6 +2176,7 @@ async function readWiiBin(binOrPath) {
 
     return thisMii;
 }
+
 async function read3DSQR(binOrPath) {
     let qrCode;
     if (/[^01]/ig.test(binOrPath)) {
@@ -2502,7 +2746,11 @@ function generateInstructions(mii,full){
 }
 
 
-var exports = {
+
+module.exports = {
+    // Data
+    Enums: require("./Enums"),
+
     //Functions
     convertMii,
     convert3DSMiiToStudio,
@@ -2520,4 +2768,3 @@ var exports = {
     
     generateInstructions,
 }
-module.exports=Object.assign(module.exports,exports);
