@@ -987,9 +987,8 @@ class TextureManager {
 	 * Constructs the TextureManager. This MUST be created after initializing FFL.
 	 * @param {Module} module - The Emscripten module.
 	 * @param {boolean} [setToFFLGlobal] - Whether or not to call FFLSetTextureCallback on the constructed callback.
-	 * @param {WebGLRenderingContext|WebGL2RenderingContext} [gl] - WebGL context for capability detection.
 	 */
-	constructor(module, setToFFLGlobal = false, gl = null) {
+	constructor(module, setToFFLGlobal = false) {
 		/**
 		 * @type {Module}
 		 * @private
@@ -1010,26 +1009,8 @@ class TextureManager {
 		 */
 		this.logging = false;
 
-		/**
-		 * WebGL context for capability detection
-		 * @type {WebGLRenderingContext|WebGL2RenderingContext|null}
-		 * @private
-		 */
-		this._gl = gl;
-
-		/**
-		 * Whether we're running on WebGL 1
-		 * @type {boolean}
-		 * @private
-		 */
+		// Detect WebGL version for format compatibility
 		this._isWebGL1 = this._detectWebGL1();
-
-		/**
-		 * Maximum texture size supported by the GPU
-		 * @type {number}
-		 * @private
-		 */
-		this._maxTextureSize = this._getMaxTextureSize();
 
 		// Create and set texture callback instance.
 		this._setTextureCallback();
@@ -1045,25 +1026,19 @@ class TextureManager {
 	 * @private
 	 */
 	_detectWebGL1() {
-		if (this._gl) {
-			return !(this._gl instanceof WebGL2RenderingContext);
+		// Check if we're in a Node.js environment or WebGL 1 context
+		if (typeof window === 'undefined') {
+			return true; // Assume WebGL 1 in Node.js environment
 		}
-		// Fallback: assume WebGL1 for safety unless explicitly WebGL2
-		// This is more conservative and helps avoid WebGL1 compatibility issues
-		return true;
-	}
-
-	/**
-	 * Gets the maximum texture size supported by the GPU
-	 * @returns {number}
-	 * @private
-	 */
-	_getMaxTextureSize() {
-		if (this._gl) {
-			return this._gl.getParameter(this._gl.MAX_TEXTURE_SIZE);
+		
+		// Try to detect WebGL version from context
+		try {
+			const canvas = document.createElement('canvas');
+			const gl = canvas.getContext('webgl2');
+			return !gl; // If WebGL 2 context fails, we're on WebGL 1
+		} catch (e) {
+			return true; // Default to WebGL 1 if detection fails
 		}
-		// Conservative default for WebGL 1
-		return this._isWebGL1 ? 2048 : 4096;
 	}
 
 	/**
@@ -1116,9 +1091,19 @@ class TextureManager {
 	 */
 	_getTextureFormat(format) {
 		// Map FFLTextureFormat to Three.js texture formats.
-		// For WebGL 1 compatibility, always use Luminance formats for single/dual channel textures
-		const r8 = this._isWebGL1 ? THREE.LuminanceFormat : THREE.RedFormat;
-		const r8g8 = this._isWebGL1 ? THREE.LuminanceAlphaFormat : THREE.RGFormat;
+		// For Three.js 0.137.5 and WebGL 1 compatibility
+		
+		let r8, r8g8;
+		
+		if (this._isWebGL1) {
+			// WebGL 1 compatible formats
+			r8 = THREE.LuminanceFormat;
+			r8g8 = THREE.LuminanceAlphaFormat;
+		} else {
+			// WebGL 2 formats (though we're targeting WebGL 1)
+			r8 = THREE.RedFormat || THREE.LuminanceFormat;
+			r8g8 = THREE.RGFormat || THREE.LuminanceAlphaFormat;
+		}
 
 		const textureFormatToThreeFormat = {
 			[FFLTextureFormat.R8_UNORM]: r8,
@@ -1135,85 +1120,6 @@ class TextureManager {
 	}
 
 	/**
-	 * Checks if a dimension is a power of two
-	 * @param {number} value 
-	 * @returns {boolean}
-	 * @private
-	 */
-	_isPowerOfTwo(value) {
-		return value > 0 && (value & (value - 1)) === 0;
-	}
-
-	/**
-	 * Finds the next power of two greater than or equal to the input
-	 * @param {number} value 
-	 * @returns {number}
-	 * @private
-	 */
-	_nextPowerOfTwo(value) {
-		return Math.pow(2, Math.ceil(Math.log2(value)));
-	}
-
-	/**
-	 * Resizes image data to power-of-two dimensions for WebGL 1 compatibility
-	 * @param {Uint8Array} imageData 
-	 * @param {number} width 
-	 * @param {number} height 
-	 * @param {number} channels 
-	 * @returns {{data: Uint8Array, width: number, height: number}}
-	 * @private
-	 */
-	_resizeToPoT(imageData, width, height, channels) {
-		const newWidth = Math.min(this._nextPowerOfTwo(width), this._maxTextureSize);
-		const newHeight = Math.min(this._nextPowerOfTwo(height), this._maxTextureSize);
-		
-		if (newWidth === width && newHeight === height) {
-			return { data: imageData, width, height };
-		}
-
-		if (this.logging) {
-		//console.debug(`Resizing texture from ${width}x${height} to ${newWidth}x${newHeight} for WebGL1 compatibility`);
-		}
-
-		// Improved bilinear interpolation resize
-		const newData = new Uint8Array(newWidth * newHeight * channels);
-		const xRatio = (width - 1) / newWidth;
-		const yRatio = (height - 1) / newHeight;
-
-		for (let y = 0; y < newHeight; y++) {
-			for (let x = 0; x < newWidth; x++) {
-				const srcX = x * xRatio;
-				const srcY = y * yRatio;
-				
-				const x1 = Math.floor(srcX);
-				const y1 = Math.floor(srcY);
-				const x2 = Math.min(x1 + 1, width - 1);
-				const y2 = Math.min(y1 + 1, height - 1);
-				
-				const xWeight = srcX - x1;
-				const yWeight = srcY - y1;
-				
-				const dstIndex = (y * newWidth + x) * channels;
-				
-				for (let c = 0; c < channels; c++) {
-					const p1 = imageData[(y1 * width + x1) * channels + c];
-					const p2 = imageData[(y1 * width + x2) * channels + c];
-					const p3 = imageData[(y2 * width + x1) * channels + c];
-					const p4 = imageData[(y2 * width + x2) * channels + c];
-					
-					const top = p1 * (1 - xWeight) + p2 * xWeight;
-					const bottom = p3 * (1 - xWeight) + p4 * xWeight;
-					const result = top * (1 - yWeight) + bottom * yWeight;
-					
-					newData[dstIndex + c] = Math.round(result);
-				}
-			}
-		}
-
-		return { data: newData, width: newWidth, height: newHeight };
-	}
-
-	/**
 	 * @param {number} _ - Originally pObj, unused here.
 	 * @param {number} textureInfoPtr - Pointer to {@link FFLTextureInfo}.
 	 * @param {number} texturePtrPtr - Pointer to the texture handle (pTexture2D).
@@ -1224,66 +1130,53 @@ class TextureManager {
 			textureInfoPtr + FFLTextureInfo.size);
 		const textureInfo = FFLTextureInfo.unpack(u8);
 		if (this.logging) {
-		//console.debug(`_textureCreateFunc: width=${textureInfo.width}, height=${textureInfo.height}, format=${textureInfo.format}, imageSize=${textureInfo.imageSize}, mipCount=${textureInfo.mipCount}`);
+			console.debug(`_textureCreateFunc: width=${textureInfo.width}, height=${textureInfo.height}, format=${textureInfo.format}, imageSize=${textureInfo.imageSize}, mipCount=${textureInfo.mipCount}`);
 		}
 
 		/** Resolve THREE.PixelFormat. */
 		const format = this._getTextureFormat(textureInfo.format);
-		
-		// Determine number of channels based on format
-		const channels = this._getChannelCount(textureInfo.format);
-		
 		// Copy image data from HEAPU8 via slice. This is base level/mip level 0.
-		let imageData = this._module.HEAPU8.slice(textureInfo.imagePtr,
+		const imageData = this._module.HEAPU8.slice(textureInfo.imagePtr,
 			textureInfo.imagePtr + textureInfo.imageSize);
-		
-		let { width, height } = textureInfo;
-		const originalWidth = width;
-		const originalHeight = height;
 
-		// Check if original dimensions are power of two
-		const isOriginalPoT = this._isPowerOfTwo(width) && this._isPowerOfTwo(height);
-		
-		// Only resize if we're in WebGL 1 AND the texture is NPOT AND it's not too large
-		// Be more conservative about when to resize
-		const shouldResize = this._isWebGL1 && !isOriginalPoT && (width <= 256 && height <= 256);
-		
-		if (shouldResize) {
-			const resized = this._resizeToPoT(imageData, width, height, channels);
-			imageData = resized.data;
-			width = resized.width;
-			height = resized.height;
-			
-			if (this.logging) {
-			//console.debug(`Resized texture from ${originalWidth}x${originalHeight} to ${width}x${height}`);
-			}
-		}
-
-		// Final power-of-two check
-		const finalIsPoT = this._isPowerOfTwo(width) && this._isPowerOfTwo(height);
-		
-		// Mipmaps: only if we have mipmap data and appropriate conditions
-		const canUseMipmaps = textureInfo.mipCount > 1 && Number(THREE.REVISION) >= 138 && !shouldResize;
-		const useMipmaps = canUseMipmaps && (finalIsPoT || !this._isWebGL1);
+		// For Three.js 0.137.5, mipmaps should work but be conservative with WebGL 1
+		const canUseMipmaps = !this._isWebGL1 && textureInfo.mipCount > 1 && this._isPowerOfTwo(textureInfo.width, textureInfo.height);
+		const useMipmaps = canUseMipmaps;
 
 		// Create new THREE.Texture with the specified format.
-		const texture = new THREE.DataTexture(useMipmaps ? null : imageData,
-			width, height, format, THREE.UnsignedByteType);
-		
-		// Configure texture settings BEFORE setting needsUpdate
-		this._configureTextureForWebGL1(texture, width, height, useMipmaps, finalIsPoT);
+		const texture = new THREE.DataTexture(
+			useMipmaps ? null : imageData,
+			textureInfo.width, 
+			textureInfo.height, 
+			format, 
+			THREE.UnsignedByteType
+		);
+
+		// Apply WebGL 1 compatible settings
+		this._configureTextureForWebGL1(texture, textureInfo.width, textureInfo.height);
 
 		if (useMipmaps) {
-			// Add base texture.
-			texture.mipmaps = [{
-				data: imageData,
-				width: width,
-				height: height
-			}];
-			// Enable filtering option for mipmap and add levels.
-			texture.minFilter = THREE.LinearMipmapLinearFilter;
-			texture.generateMipmaps = false;
-			this._addMipmaps(texture, textureInfo, channels);
+			try {
+				// Add base texture.
+				texture.mipmaps = [{
+					data: imageData,
+					width: textureInfo.width,
+					height: textureInfo.height
+				}];
+				// Enable filtering option for mipmap and add levels.
+				texture.minFilter = THREE.LinearMipmapLinearFilter;
+				texture.generateMipmaps = false;
+				this._addMipmaps(texture, textureInfo);
+			} catch (error) {
+				console.warn('Failed to add mipmaps, falling back to base texture:', error);
+				// Fallback to single texture without mipmaps
+				texture.image = { data: imageData, width: textureInfo.width, height: textureInfo.height };
+				texture.mipmaps = [];
+				this._configureTextureForWebGL1(texture, textureInfo.width, textureInfo.height);
+			}
+		} else {
+			// Set image data directly for non-mipmap textures
+			texture.image = { data: imageData, width: textureInfo.width, height: textureInfo.height };
 		}
 
 		texture.needsUpdate = true;
@@ -1292,61 +1185,50 @@ class TextureManager {
 	}
 
 	/**
-	 * Gets the number of channels for a given texture format
-	 * @param {number} format - FFLTextureFormat enum value
-	 * @returns {number}
-	 * @private
-	 */
-	_getChannelCount(format) {
-		const channelMap = {
-			[FFLTextureFormat.R8_UNORM]: 1,
-			[FFLTextureFormat.R8_G8_UNORM]: 2,
-			[FFLTextureFormat.R8_G8_B8_A8_UNORM]: 4
-		};
-		return channelMap[format] || 4;
-	}
-
-	/**
-	 * Configures texture settings for WebGL 1 compatibility
+	 * Configures texture for WebGL 1 compatibility
 	 * @param {import('three').Texture} texture
 	 * @param {number} width
 	 * @param {number} height
-	 * @param {boolean} useMipmaps
-	 * @param {boolean} isPowerOfTwo
 	 * @private
 	 */
-	_configureTextureForWebGL1(texture, width, height, useMipmaps, isPowerOfTwo = null) {
-		// Calculate if power of two if not provided
-		if (isPowerOfTwo === null) {
-			isPowerOfTwo = this._isPowerOfTwo(width) && this._isPowerOfTwo(height);
-		}
+	_configureTextureForWebGL1(texture, width, height) {
+		const isPOT = this._isPowerOfTwo(width, height);
 		
-		// Start with safe defaults for NPOT textures
-		if (!isPowerOfTwo || this._isWebGL1) {
+		if (!isPOT || this._isWebGL1) {
+			// WebGL 1 safe settings for NPOT textures
 			texture.wrapS = THREE.ClampToEdgeWrapping;
 			texture.wrapT = THREE.ClampToEdgeWrapping;
 			texture.generateMipmaps = false;
+			texture.minFilter = THREE.LinearFilter;
+			texture.magFilter = THREE.LinearFilter;
+			
+			if (this.logging && !isPOT) {
+				console.debug(`WebGL1/NPOT configuration applied: ${width}x${height}`);
+			}
 		} else {
-			// Power-of-two textures can use repeat wrapping
+			// Power-of-two texture settings
 			texture.wrapS = THREE.RepeatWrapping;
 			texture.wrapT = THREE.RepeatWrapping;
-			texture.generateMipmaps = false; // Still disable auto-generation
-		}
-		
-		// Set filtering
-		texture.magFilter = THREE.LinearFilter;
-		
-		if (useMipmaps && isPowerOfTwo) {
-			// Only use mipmap filtering if we actually have mipmaps and texture is PoT
-			texture.minFilter = THREE.LinearMipmapLinearFilter;
-		} else {
-			// Safe linear filtering for all other cases
+			texture.magFilter = THREE.LinearFilter;
 			texture.minFilter = THREE.LinearFilter;
 		}
 
-		if (this.logging) {
-		//console.debug(`Texture config: ${width}x${height}, PoT=${isPowerOfTwo}, mipmaps=${useMipmaps}, WebGL1=${this._isWebGL1}`);
-		}
+		// Ensure compatibility with Three.js 0.137.5
+		texture.flipY = false; // Important for WebGL compatibility
+		texture.premultiplyAlpha = false;
+		texture.unpackAlignment = 1; // Important for non-RGBA formats
+	}
+
+	/**
+	 * Checks if dimensions are power of two
+	 * @param {number} width
+	 * @param {number} height
+	 * @returns {boolean}
+	 * @private
+	 */
+	_isPowerOfTwo(width, height) {
+		const isPowerOfTwo = (x) => x > 0 && (x & (x - 1)) === 0;
+		return isPowerOfTwo(width) && isPowerOfTwo(height);
 	}
 
 	/**
@@ -1356,11 +1238,11 @@ class TextureManager {
 	 * @deprecated Use _configureTextureForWebGL1 instead
 	 */
 	_fixNPOT(texture) {
-		const width = texture.image?.width;
-		const height = texture.image?.height;
-		const isPowerOfTwo = (x) => (x & (x - 1)) === 0;
-
-		if (!isPowerOfTwo(width) || !isPowerOfTwo(height)) {
+		// Get dimensions from image or fallback to texture properties
+		const width = texture.image?.width || texture.width || 0;
+		const height = texture.image?.height || texture.height || 0;
+		
+		if (!this._isPowerOfTwo(width, height)) {
 			texture.wrapS = THREE.ClampToEdgeWrapping;
 			texture.wrapT = THREE.ClampToEdgeWrapping;
 			texture.generateMipmaps = false;
@@ -1368,7 +1250,7 @@ class TextureManager {
 			texture.magFilter = THREE.LinearFilter;
 
 			if (this.logging) {
-			//console.debug(`NPOT fix applied: ${width}x${height}`);
+				console.debug(`NPOT fix applied: ${width}x${height}`);
 			}
 		}
 	}
@@ -1376,11 +1258,10 @@ class TextureManager {
 	/**
 	 * @param {import('three').Texture} texture - Texture to upload mipmaps into.
 	 * @param {FFLTextureInfo} textureInfo - FFLTextureInfo object representing this texture.
-	 * @param {number} channels - Number of channels in the texture
 	 * @throws {Error} Throws if mipPtr is null.
 	 * @private
 	 */
-	_addMipmaps(texture, textureInfo, channels) {
+	_addMipmaps(texture, textureInfo) {
 		// Make sure mipPtr is not null.
 		if (textureInfo.mipPtr === 0) {
 			throw new Error('_addMipmaps: mipPtr is null, so the caller incorrectly assumed this texture has mipmaps');
@@ -1392,8 +1273,8 @@ class TextureManager {
 			const mipOffset = textureInfo.mipLevelOffset[mipLevel - 1];
 
 			// Calculate dimensions of the current mip level.
-			let mipWidth = Math.max(1, textureInfo.width >> mipLevel);
-			let mipHeight = Math.max(1, textureInfo.height >> mipLevel);
+			const mipWidth = Math.max(1, textureInfo.width >> mipLevel);
+			const mipHeight = Math.max(1, textureInfo.height >> mipLevel);
 
 			// Get the offset of the next mipmap and calculate end offset.
 			const nextMipOffset = textureInfo.mipLevelOffset[mipLevel] || textureInfo.mipSize;
@@ -1401,24 +1282,21 @@ class TextureManager {
 
 			// Copy the data from the heap.
 			const start = textureInfo.mipPtr + mipOffset;
-			let mipData = this._module.HEAPU8.slice(start, end);
-
-			// For WebGL 1, ensure mipmap dimensions are power-of-two if needed
-			if (this._isWebGL1 && (!this._isPowerOfTwo(mipWidth) || !this._isPowerOfTwo(mipHeight))) {
-				const resized = this._resizeToPoT(mipData, mipWidth, mipHeight, channels);
-				mipData = resized.data;
-				mipWidth = resized.width;
-				mipHeight = resized.height;
-			}
+			const mipData = this._module.HEAPU8.slice(start, end);
 
 			if (this.logging) {
-			//console.debug(`  - Mip ${mipLevel}: ${mipWidth}x${mipHeight}, offset=${mipOffset}, range=${start}-${end}`);
+				console.debug(`  - Mip ${mipLevel}: ${mipWidth}x${mipHeight}, offset=${mipOffset}, range=${start}-${end}`);
+			}
+
+			// Validate mip data
+			if (mipData.length === 0) {
+				console.warn(`Empty mip data for level ${mipLevel}, skipping`);
+				continue;
 			}
 
 			// Push this mip level data into the texture's mipmaps array.
-			// @ts-ignore - data = "CompressedTextureMipmap & CubeTexture & HTMLCanvasElement"
 			texture.mipmaps.push({
-				data: mipData, // Should still accept Uint8Array.
+				data: mipData,
 				width: mipWidth,
 				height: mipHeight
 			});
@@ -1439,7 +1317,7 @@ class TextureManager {
 		// finished with the model itself. It is now only logging
 		const tex = this._textures.get(texId);
 		if (tex && this.logging) {
-		//console.debug('Delete texture    ', tex.id);
+			console.debug('Delete texture    ', tex.id);
 		}
 	}
 
@@ -1465,15 +1343,21 @@ class TextureManager {
 		// Set texture with an override for dispose.
 		const disposeReal = texture.dispose.bind(texture);
 		texture.dispose = () => {
-			// Remove this texture from the map after disposing.
-			disposeReal();
-			this.delete(id); // this = TextureManager
+			try {
+				// Remove this texture from the map after disposing.
+				disposeReal();
+				this.delete(id); // this = TextureManager
+			} catch (error) {
+				console.warn('Error disposing texture:', error);
+				// Still try to delete from map
+				this.delete(id);
+			}
 		};
 
 		this._textures.set(id, texture);
 		// Log is spaced to match delete/deleting/dispose messages.
 		if (this.logging) {
-		//console.debug('Adding texture    ', texture.id);
+			console.debug('Adding texture    ', texture.id);
 		}
 	}
 
@@ -1486,11 +1370,25 @@ class TextureManager {
 		// because it's okay if it was already deleted.
 		const texture = this._textures.get(id);
 		if (texture) {
-			// This is assuming the texture has already been disposed.
-			/** @type {Object<string, *>} */ (texture).source = null;
-			/** @type {Object<string, *>} */ (texture).mipmaps = null;
+			try {
+				// This is assuming the texture has already been disposed.
+				// Safely clear references
+				if (texture.source) {
+					texture.source = null;
+				}
+				if (texture.mipmaps) {
+					texture.mipmaps = null;
+				}
+				// Clear image reference if it exists
+				if (texture.image) {
+					texture.image = null;
+				}
+			} catch (error) {
+				console.warn('Error clearing texture references:', error);
+			}
+			
 			if (this.logging) {
-			//console.debug('Deleted texture   ', id);
+				console.debug('Deleted texture   ', id);
 			}
 			this._textures.delete(id);
 		}
@@ -1502,23 +1400,32 @@ class TextureManager {
 	 * @public
 	 */
 	disposeCallback() {
-		// if (!this._module) {
-		// 	return;
-		// }
-		if (this._textureCallbackPtr) {
-			this._module._free(this._textureCallbackPtr);
-			this._textureCallbackPtr = 0;
+		try {
+			if (this._textureCallbackPtr) {
+				this._module._free(this._textureCallbackPtr);
+				this._textureCallbackPtr = 0;
+			}
+		} catch (error) {
+			console.warn('Error freeing texture callback pointer:', error);
 		}
-		if (this._deleteCallback) {
-			this._module.removeFunction(this._deleteCallback);
-			this._deleteCallback = 0;
+
+		try {
+			if (this._deleteCallback) {
+				this._module.removeFunction(this._deleteCallback);
+				this._deleteCallback = 0;
+			}
+		} catch (error) {
+			console.warn('Error removing delete callback function:', error);
 		}
-		// should always exist?:
-		if (this._createCallback) {
-			this._module.removeFunction(this._createCallback);
-			this._createCallback = 0;
+
+		try {
+			if (this._createCallback) {
+				this._module.removeFunction(this._createCallback);
+				this._createCallback = 0;
+			}
+		} catch (error) {
+			console.warn('Error removing create callback function:', error);
 		}
-		// this._module = null;
 	}
 
 	/**
@@ -1526,9 +1433,15 @@ class TextureManager {
 	 * @public
 	 */
 	dispose() {
-		// Dispose of all stored textures.
-		this._textures.forEach((tex) => {
-			tex.dispose();
+		// Dispose of all stored textures with error handling.
+		this._textures.forEach((tex, id) => {
+			try {
+				tex.dispose();
+			} catch (error) {
+				console.warn(`Error disposing texture ${id}:`, error);
+				// Force delete from map even if dispose failed
+				this._textures.delete(id);
+			}
 		});
 
 		// Clear texture map.

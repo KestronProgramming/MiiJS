@@ -1,4 +1,6 @@
 .vscode
+.vsls.json
 node_modules
-__tests__
 FFLResHigh.dat
+__tests__
+TODO.md

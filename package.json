@@ -33,6 +33,9 @@
     "jsqr": "^1.4.0",
     "path": "^0.12.7",
     "qr-code-styling": "^1.9.2",
-    "three": "0.138.3"
+    "three": "0.137.5"
+  },
+  "devDependencies": {
+    "jest": "^30.0.1"
   }
 }
