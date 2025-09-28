@@ -2177,7 +2177,7 @@ async function readWiiBin(binOrPath) {
     return thisMii;
 }
 
-async function read3DSQR(binOrPath) {
+async function read3DSQR(binOrPath,returnDecryptedBin) {
     let qrCode;
     if (/[^01]/ig.test(binOrPath)) {
         var data = await fs.promises.readFile(binOrPath);
@@ -2197,7 +2197,9 @@ async function read3DSQR(binOrPath) {
     }
     if (qrCode) {
         var data = Buffer.from(decodeAesCcm(new Uint8Array(qrCode)));
-
+        if(returnDecryptedBin){
+            return data;
+        }
         const miiJson = miiBufferToJson(data, THREEDS_MII_SCHEMA, lookupTables, false);
         miiJson.console = '3ds';
         return miiJson;
