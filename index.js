@@ -11,9 +11,14 @@ const httpsLib = require('https');
 const asmCrypto=require("./asmCrypto.js");
 const path=require("path");
 const createGL = require('gl');
-const {FFLCharModelDescDefault,createCharModel,initCharModelTextures,initializeFFL,parseHexOrB64ToUint8Array}=require("./ffl/ffl.js");
-const ModuleFFL=require("./ffl/ffl-emscripten-single-file.js");
-const FFLShaderMaterial=require("./ffl/FFLShaderMaterial.js");
+
+const {
+  createCharModel, initCharModelTextures,
+  initializeFFL, exitFFL, parseHexOrB64ToUint8Array,
+  setIsWebGL1State, getCameraForViewType, ViewType
+} = require("ffl.js/ffl.js");
+const ModuleFFL = require("ffl.js/examples/ffl-emscripten-single-file.js");
+const FFLShaderMaterial = require("ffl.js/FFLShaderMaterial.js");
 
 // Typedefs for intellisence
 /** @typedef {import('./types').WiiMii} WiiMii */
@@ -53,40 +58,17 @@ function byteToString(int){
     return str;
 }
 
-// Mock global browser environment for Three.js
-if (typeof global !== 'undefined' && !global.window) {
-    global.window = {
-        requestAnimationFrame: (callback) => setTimeout(callback, 16),
-        cancelAnimationFrame: (id) => clearTimeout(id),
-        performance: {
-            now: () => Date.now()
-        },
-        navigator: {
-            userAgent: 'Node.js'
-        },
-        document: {
-            createElement: () => ({}),
-            createElementNS: () => ({}),
-            addEventListener: () => {},
-            removeEventListener: () => {}
-        },
-        addEventListener: () => {},
-        removeEventListener: () => {},
-        location: { href: '' }
-    };
-    global.document = global.window.document;
-    global.navigator = global.window.navigator;
-    global.requestAnimationFrame = global.window.requestAnimationFrame;
-    global.cancelAnimationFrame = global.window.cancelAnimationFrame;
-}
-
 //If FFLResHigh.dat is in the same directory as Node.js is calling the library from, use it by default
-var _fflRes=null;
-if(fs.existsSync("./FFLResHigh.dat")){
-    _fflRes=new Uint8Array(fs.readFileSync("./FFLResHigh.dat",""));
-}
-if(fs.existsSync("./ffl/FFLResHigh.dat")){
-    _fflRes=new Uint8Array(fs.readFileSync("./ffl/FFLResHigh.dat",""));
+let _fflRes; // undefined initially
+function getFFLRes() {
+    // If we've already tried loading, just return the result
+    if (_fflRes !== undefined) return _fflRes;
+    for (const path of [ "./FFLResHigh.dat", "./ffl/FFLResHigh.dat" ]) {
+        if (fs.existsSync(path))
+            return _fflRes = new Uint8Array(fs.readFileSync(path));
+    }
+    // If no file found, mark as null
+    return _fflRes = null;
 }
 
 //3DS QR Code (En|De)cryption
@@ -2214,207 +2196,115 @@ async function renderMiiWithStudio(jsonIn){
     var studioMii=convert3DSMiiToStudio(jsonIn);
     return await downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + studioMii + "&width=270&type=face");
 }
-async function renderMii(jsonIn,fflRes=_fflRes){
-    if(!["3ds","wii u"].includes(jsonIn.console?.toLowerCase())){
-        jsonIn=convertMii(jsonIn);
-    }
-    const studioMii = convert3DSMiiToStudio(jsonIn);
-
-    var width = 600, height = 600;
-    
-    // ---------- WebGL 1 context with explicit options ----------
-    const gl = createGL(width, height, { 
-        preserveDrawingBuffer: true,
-        antialias: false,
-        alpha: false,
-        depth: true,
-        stencil: false,
-        premultipliedAlpha: false
-    });
-
-    // Force WebGL 1 context (ensure no WebGL 2 features are used)
+/**
+ * Creates a Mii face render using FFL.js/Three.js/gl-headless.
+ * @example
+ * const fs = require('fs');
+ * // NOTE: ASSUMES that this function IS EXPORTED in index.js.
+ * const createFFLMiiIcon = require('./index.js').createFFLMiiIcon;
+ * const miiData = '000d142a303f434b717a7b84939ba6b2bbbec5cbc9d0e2ea010d15252b3250535960736f726870757f8289a0a7aeb1';
+ * const outFilePath = 'mii-render.png';
+ * const fflRes = fs.readFileSync('./FFLResHigh.dat');
+ * createFFLMiiIcon(miiData, 512, 512, fflRes)
+ *   .then(pngBytes => fs.writeFileSync(outFilePath, pngBytes));
+ */
+async function createFFLMiiIcon(data, width, height, fflRes) {
+    // Create WebGL context.
+    const gl = createGL(width, height);
     if (!gl) {
         throw new Error('Failed to create WebGL 1 context');
     }
 
-    // ---------- Enhanced dummy canvas for Three.js 0.137.5 ----------
-    const dummyCanvas = {
-        width,
-        height,
-        clientWidth: width,
-        clientHeight: height,
-        getContext: (contextType, options) => {
-            if (contextType === 'webgl' || contextType === 'experimental-webgl') {
-                return gl;
-            }
-            return null;
-        },
+    // Create a dummy canvas for Three.js to use.
+    const canvas = {
+        width, height, style: {},
         addEventListener() {},
         removeEventListener() {},
-        dispatchEvent() {},
-        style: {},
-        ownerDocument: {
-            createElement: () => ({}),
-            createElementNS: () => ({})
-        },
-        getBoundingClientRect: () => ({
-            left: 0,
-            top: 0,
-            width,
-            height,
-            right: width,
-            bottom: height
-        })
+        // Return the context for 'webgl' (not webgl2)
+        getContext: (type, _) => type === 'webgl' ? gl : null,
     };
 
-    // ---------- Three.js renderer with WebGL 1 settings ----------
-    const renderer = new THREE.WebGLRenderer({
-        canvas: dummyCanvas,
-        context: gl,
-        antialias: false,
-        alpha: false,
-        premultipliedAlpha: false,
-        preserveDrawingBuffer: true,
-        powerPreference: "default"
-    });
+    // WebGLRenderer constructor sets "self" as the context.
+    // As of r162, it only tries to call cancelAnimationFrame frame on it.
+    globalThis.self ??= {
+        // Mock window functions called by Three.js.
+        cancelAnimationFrame: () => { },
+    };
+    // Create the Three.js renderer and scene.
+    const renderer = new THREE.WebGLRenderer({ canvas, context: gl, alpha: true });
+    setIsWebGL1State(!renderer.capabilities.isWebGL2); // Tell FFL.js we are WebGL1
 
-    // Configure renderer for WebGL 1 compatibility
-    renderer.setSize(width, height);
-    renderer.setClearColor(0xffffff, 1.0);
-    
-    // Disable features that might not be available in WebGL 1
-    renderer.shadowMap.enabled = false;
-    renderer.outputEncoding = THREE.sRGBEncoding; // Use sRGBEncoding instead of outputColorSpace for 0.137.5
-    renderer.toneMapping = THREE.NoToneMapping;
-    
-    // Ensure WebGL 1 capabilities
-    const capabilities = renderer.capabilities;
-    capabilities.isWebGL2 = false;
-    capabilities.maxTextures = Math.min(capabilities.maxTextures, 8); // WebGL 1 minimum
-    
-    let moduleFFL, currentCharModel;
-
-    // ---------- Scene setup ----------
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
+    // scene.background = null; // Transparent background.
+    scene.background = new THREE.Color('white');
+    // (You DO NOT need to add any lights to the scene,
+    // unless you are using a Three.js built-in material.
+    // If you are, look at demo-basic.js "addLightsToScene".)
 
-    // Camera setup - centered on Mii head
-    let camera = new THREE.PerspectiveCamera(15, width / height, 1, 5000);
-    camera.position.set(0, 0, 500);
-    camera.lookAt(0, 0, 0);
+    let ffl, currentCharModel;
 
-    function updateCharModelInScene(data, modelDesc) {
-        // Decode data
-        if (typeof data === 'string') {
-            data = parseHexOrB64ToUint8Array(data);
-        }
-
-        // Remove existing CharModel
-        if (currentCharModel) {
-            if (currentCharModel.meshes) {
-                scene.remove(currentCharModel.meshes);
-            }
-            if (typeof currentCharModel.dispose === 'function') {
-                currentCharModel.dispose();
-            }
-        }
-
-        try {
-            // Create new CharModel
-            currentCharModel = createCharModel(data, modelDesc, FFLShaderMaterial, moduleFFL);
-            
-            // Initialize textures
-            initCharModelTextures(currentCharModel, renderer);
-
-            // Add to scene
-            if (!currentCharModel.meshes) {
-                throw new Error('updateCharModelInScene: currentCharModel.meshes is null.');
-            }
-            scene.add(currentCharModel.meshes);
-        } catch (error) {
-            console.error('Error creating character model:', error);
-            throw error;
-        }
-    }
-
+    //const _realConsoleDebug = console.debug;
+    //console.debug = () => { };
     try {
         // Initialize FFL
-        const initResult = await initializeFFL(fflRes, ModuleFFL);
-        moduleFFL = initResult.module;
+        ffl = await initializeFFL(fflRes, ModuleFFL);
 
-        // Create character model
-        updateCharModelInScene(studioMii, FFLCharModelDescDefault);
+        // Create Mii model and add to the scene.
+        const studioRaw = parseHexOrB64ToUint8Array(data); // Parse studio data
+        currentCharModel = createCharModel(studioRaw, null,
+          FFLShaderMaterial, ffl.module);
+        initCharModelTextures(currentCharModel, renderer); // Initialize fully
+        scene.add(currentCharModel.meshes); // Add to scene
 
-        // Center the character model if it exists
-        if (currentCharModel && currentCharModel.meshes) {
-            // Calculate bounding box to center the model
-            const box = new THREE.Box3().setFromObject(currentCharModel.meshes);
-            const center = box.getCenter(new THREE.Vector3());
-            
-            // Offset the model to center it
-            currentCharModel.meshes.position.sub(center);
-            
-            camera.position.set(0, 0, 500);
-        }
+        // Use the camera for an icon pose.
+        const camera = getCameraForViewType(ViewType.MakeIcon);
 
-        // Add basic lighting for better visibility
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
+        // The pixels coming from WebGL are upside down.
+        camera.projectionMatrix.elements[5] *= -1; // Flip the camera Y axis.
+        // When flipping the camera, the triangles are in the wrong direction.
+        scene.traverse(mesh => {
+          if (mesh.isMesh && mesh.material.side === THREE.FrontSide)
+            // Fix triangle winding by changing the culling (side).
+            mesh.material.side = THREE.BackSide;
+        });
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(1, 1, 1);
-        scene.add(directionalLight);
-
-        // Render scene
+        // Render the scene, and read the pixels into a buffer.
         renderer.render(scene, camera);
-
-        // Force WebGL to finish all operations
-        gl.finish();
-
-        // ---------- Read pixels ----------
         const pixels = new Uint8Array(width * height * 4);
         gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
-        // ---------- Flip rows (WebGL uses bottom-left origin) ----------
-        const src = Buffer.from(pixels);
-        const flipped = Buffer.alloc(src.length);
-
-        const rowBytes = width * 4;
-        for (let y = 0; y < height; y++) {
-            const srcStart = y * rowBytes;
-            const dstStart = (height - y - 1) * rowBytes;
-            src.copy(flipped, dstStart, srcStart, srcStart + rowBytes);
-        }
-
-        // ---------- Create final image ----------
+        // Draw the pixels to a new canvas.
         const canvas = createCanvas(width, height);
-        const ctx = canvas.getContext('2d');
-        const img = new ImageData(new Uint8ClampedArray(flipped.buffer), width, height);
-        ctx.putImageData(img, 0, 0);
+        const img = new ImageData(new Uint8ClampedArray(pixels), width, height);
+        canvas.getContext('2d').putImageData(img, 0, 0);
 
-        return canvas.toBuffer('image/png');
+        return canvas.toBuffer('image/png'); // Encode image to PNG
 
     } catch (error) {
         console.error('Error during rendering:', error);
         throw error;
     } finally {
-        // Cleanup - be more careful with disposal
+        // Clean up.
         try {
-            if (currentCharModel && typeof currentCharModel.dispose === 'function') {
-                currentCharModel.dispose();
-            }
-        } catch (cleanupError) {
-            console.warn('Error disposing character model:', cleanupError.message);
-        }
-        
-        try {
-            // Clear the renderer's internal state before disposing
-            renderer.setAnimationLoop(null);
-            renderer.dispose();
-        } catch (rendererError) {
-            console.warn('Error disposing renderer:', rendererError.message);
-        }
+            (currentCharModel) && currentCharModel.dispose(); // Mii model
+            exitFFL(ffl.module, ffl.resourceDesc); // Free fflRes from memory.
+            renderer.dispose(); // Dispose Three.js renderer.
+            gl.finish();
+        } catch (error) {
+            console.warn('Error disposing Mii and renderer:', error);
+        }// finally {
+        //    console.debug = _realConsoleDebug;
+        //}
     }
+}
+async function renderMii(jsonIn, fflRes=getFFLRes()){
+  if(!["3ds","wii u"].includes(jsonIn.console?.toLowerCase())){
+      jsonIn=convertMii(jsonIn);
+  }
+  const studioMii = convert3DSMiiToStudio(jsonIn);
+  const width = height = 600;
+
+  return createFFLMiiIcon(studioMii, width, height, fflRes);
 }
 async function writeWiiBin(jsonIn, outPath) {
     if (jsonIn.console?.toLowerCase() !== "wii") {
@@ -2423,7 +2313,7 @@ async function writeWiiBin(jsonIn, outPath) {
     const miiBuffer = jsonToMiiBuffer(jsonIn, WII_MII_SCHEMA, lookupTables, 74);
     await fs.promises.writeFile(outPath, miiBuffer);
 }
-async function write3DSQR(miiJson, outPath, fflRes = _fflRes) {
+async function write3DSQR(miiJson, outPath, fflRes = getFFLRes()) {
     if (!["3ds", "wii u"].includes(miiJson.console?.toLowerCase())) {
         miiJson = convertMii(miiJson);
     }
