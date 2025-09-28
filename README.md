@@ -1,29 +1,59 @@
 # MiiJS
-Read, Edit, Write, and make Special Miis from a Wiimote binary file or 3DS QR Code to a binary file or QR code
+MiiJS is a JS library for working with Mii characters in an accessible way. Reading and writing binary representations or QR codes, converting between consoles, rendering via Studio or locally, generating instructions to recreate the Miis, making Special Miis, and more functions planned. This library reads Mii data into JSON, which is human and computer readable.
+<hr>
 
 ## Installation
-`npm install miijs`
+`npm install miijs` | `npm i miijs`
 
-<br>
+<hr>
+## Table of Contents
+- [Functions](#functions)
+- [Special Miis](#special-miis)
+- [Other Console Support](#other-console-support)
+- [`convertMii` Discrepancies](#discrepancies-in-convertmii-function)
+- [Transferring to/from the System](#transferring-miis-to-and-from-the-system)
+- [FFLResHigh.dat](#fflreshighdat)
+- [Credits](#credits)
+<hr>
 
 # Functions
- - **`async read3DSQR(pathToQR)`** - returns JSON.
- - **`async write3DSQR(miiJSON, path, fflRes)`** - writes a JPG QR of a 3DS scannable Mii to the path specified. If no fflRes is specified, the QR will render using Nintendo Studio's API. If one is, it will contain a locally rendered version. fflRes must be passed as a buffer (such as `fs.readFileSync('FFLResHigh.dat')`). `FFLResHigh.dat` will not be provided by the library, but must be provided to the library. `FFLResHigh.dat` can also be placed in the same directory to automatically use it.
- - **`readWiiBin(pathToMii)`** - returns JSON.
- - **`writeWiiBin(miiJSON)`** - returns Mii binary which can then be written.
- - **`async render3DSMiiWithStudio(miiJSON, path)`** - writes JPG representation of Mii's face to specific path, using Nintendo's Mii Studio.
- - **`convertMii(miiJson)`** - converts the Mii JSON format to the opposite Mii type and returns the JSON.
- - **`generateInstructions(miiJson, fullInstructions)`** - returns a JSON object of different instruction fields. If full is not set, only the instructions that differ from a default Mii will be returned.
- - **`async render3DSMii(miiJSON,fflRes)`** - Returns a buffer containing a JPG representation of the Mii's face. `FFLResHigh.dat` must be passed as a buffer (such as `fs.readFileSync('FFLResHigh.dat')`). `FFLResHigh.dat` will not be provided by the library, but must be provided to the library. `FFLResHigh.dat` can also be placed in the same directory to automatically use it.
- - **`convert3DSMiiToStudio(miiJSON)`** - returns a Studio compatible Mii
- - **`render3DSMiiWithStudio(miiJSON, path)`** - writes a rendering of the Mii using Nintendo Studio's API to the path specified.
+ - **`async read3DSQR(PathToMiiQR OR BinaryDataFromQR, ReturnDecryptedBin?)`** - returns JSON by default, by specifying `true` as the secondary parameter you can receive only the decrypted Mii data from the QR.
+ - **`async write3DSQR(MiiJSON, PathToWriteTo, fflRes)`** - writes a JPG QR of a 3DS scannable Mii to the path specified. If no fflRes is specified, the QR will render using Nintendo Studio's API. If one is, it will contain a locally rendered version. fflRes must either be passed as a buffer, or FFLResHigh.dat present in your project's root directory.
 
-## Making a Special Mii
+ - **`readWiiBin(PathToMii OR BinaryMiiData)`** - returns JSON.
+ - **`writeWiiBin(MiiJSON, PathToWriteTo)`** - returns Mii binary which can then be written by default. If PathToWriteTo is specified, it will instead be written to a file.
+
+ - **`convertMii(miiJson)`** - converts the Mii JSON format to the opposite Mii type (3DS, Wii) and returns the JSON.
+ - **`convertMiiToStudio(miiJSON)`** - returns a Studio compatible Mii in hex format.
+
+ - **`async renderMiiWithStudio(miiJSON)`** - Returns a buffer containing a JPG representation of the Mii's face using Studio.
+ - **`async renderMii(miiJSON,fflRes)`** - Returns a buffer containing a JPG representation of the Mii's face. fflRes must either be passed as a buffer, or FFLResHigh.dat present in your project's root directory.
+
+ - **`generateInstructions(miiJson, fullInstructions)`** - returns a JSON object of different instruction fields. If full is not set, only the instructions that differ from a default Mii will be returned.
+
+<hr>
+
+## Special Miis
+Special Miis were on the Wii and 3DS, identifiable via their golden pants. They were created by Nintendo employees, and not consumers. They could not be edited, or copied. In every other instance transferring a Mii to another system would leave a copy on both systems. For Special Miis, they would delete themselves from the console sending them, and only ever be present in one place at a time per copy Nintendo sent out. When receiving them via QR code on the 3DS, it would only allow you to scan that QR once, and never again. On the Wii, these were distributed via the WiiConnect24 service, and would arrive via the Message Board. On the 3DS, these were distributed occasionally via Spotpass, Streetpass, and QR codes.
+### Making a Special Mii
 To make a special Mii, read in the file using the appropriate function, set `mii.info.type="Special";`, and then write a new file with the appropriate function.
 -# The Wii U does not support Special Miis.
 
-### A Note on Wii U Support
-The 3DS and Wii U do the same things with Miis. The Wii U does not however support Special Miis, and so 3DS is the name used for the 3DS/Wii U generation of Miis throughout this project. However, as long as you are not hoping to use Special Miis on the Wii U, as it cannot, the **3DS and Wii U are completely interchangeable** as far as Miis go otherwise. So anywhere you are working with a Wii U Mii, use the 3DS function/process. Be aware the Wii U cannot process Special Miis.
+<hr>
+
+## Other Console Support
+- DS
+   - DS and Wii Miis are interchangeable. The DS only contains Miis in a handful of games, and is not baked into the system, however every instance where it does it is based off the Wii version of Miis, and to my current knowledge always provides a way to transfer to and from the Wii, being the only way short of recreation to transfer on and off.
+- Wii U
+   - The Wii U and 3DS Miis are interchangeable, with one major exception. The 3DS has Special Miis, while the Wii U will not render any Mii set as a Special Mii. So since the 3DS has this one added feature, 3DS is what takes priority in the naming schemes across this project, however it is for all intents and purposes interchangeable with a Wii U Mii.
+- Switch/2
+   - Miis are more isolated than they've ever been on the Switch/2. To take them on and off of the Switch/2 via direct transfer, an Amiibo _and_ one of, a 3DS with NFC Reader accessory, New 3DS, or Wii U, is **required**. The only other method is to recreate manually from scratch. Due to this limitation of direct transfer, all Miis that this library can affect will be going through the 3DS or Wii U anyway, and direct Switch/2 support is thus irrelevant. 
+- Studio
+   - Studio Miis are in essence Switch/2 Miis. Transferring directly on/off of Studio (a browser Mii Maker used purely for profile pictures across Nintendo's online logins) requires a developer console and code paste, or browser extension. I may undertake making my own version of this in the future, but for the time being [this tool](https://mii.tools/studioloader/) by HEYimHeroic serves this purpose (from what I can tell, I have not used it myself).
+- Miitomo/Kaerutomo and Tomodachi Life
+   - Both Mii formats are the same as 3DS formats, with extra info added to the end. The way the library is set up, it can already read these. My devices are too new for Kaerutomo support, but I believe it should be able to scan the 3DS format Miis. Writing specific to Tomodachi Life Miis with game data already present in the QR is more within the realm of a Tomodachi Life save editor. I may undertake this for the Miis in the future, but it would be a separate project.
+
+<hr>
 
 ## Discrepancies in `convertMii` function
 All of these discrepancies __only__ apply when converting from the **3DS to the Wii**, converting from the Wii to the 3DS should be a perfect conversion.
@@ -38,7 +68,7 @@ There is a reason that the Wii supports sending Miis to the 3DS, but not vice ve
  - The 3DS has an extra page of eye types that the Wii does not, which the function maps to a similar eye type that the Wii does support if used. Will likely require a manual edit.
  - The 3DS has two extra mustaches and two extra beards. These are mapped to a similar beard or mustache if used - the two extra beards will likely need a manual change if used.
  
- <br>
+ <hr>
 
 # Transferring Miis to and from the System
  - Wii
@@ -49,8 +79,16 @@ There is a reason that the Wii supports sending Miis to the 3DS, but not vice ve
 
 <sub>If you are unable to transfer to the console you wish to, you can use the `generateInstructions` function provided here and manually recreate the Mii on the console using the provided instructions.</sub>
 
-<br>
+<hr>
+
+## FFLResHigh.dat
+FFLResHigh.dat provides the necessary models and textures to build a 3D model of the Mii. This will not be provided by the library but can be provided by placing it in the directory of the project calling MiiJS. By providing FFLResHigh.dat, you can then render Miis locally without using Studio. If you do not have or do not provide FFLResHigh.dat, rendering is still available via Studio.
+### Finding FFLResHigh.dat
+Any version of AFLResHigh.dat will work as well, renamed to FFLResHigh.dat.
+You can find FFLResHigh using a Wii U with an FTP program installed at `sys/title/0005001b/10056000/content/FFLResHigh.dat`. From a Miitomo install, it can be found in the cache at `res/asset/model/character/mii/AFLResHigh_2_3.dat`.
+
+<hr>
 
 # Credits
  - **[kazuki-4ys' MiiInfoEditorCTR](https://github.com/kazuki-4ys/kazuki-4ys.github.io/tree/master/web_apps/MiiInfoEditorCTR)** - I repurposed how to decrypt and reencrypt the QR codes from here, including repurposing the asmCrypto.js file in its entirety with very small modifications (it has since been stripped down to only include the functions this library uses). I believe I also modified the code for rendering the Mii using Nintendo's Mii Studio from here as well, though I do not remember for certain.
- - **[ariankordi's FFL.js](https://github.com/ariankordi/FFL.js/)** - All files starting with `/^ffl\*/i` and `struct-fu.js` are from FFL.js. They're here to support rendering the Miis locally. A lot of modifications had to be made to work in Node.js, and while it was a fair bit of work, it's far less than rewriting it from the ground up (Particularly as someone almost fully new to 3D rendering) and locally rendering Miis would not have been possible without this repo.
+ - **[ariankordi's FFL.js](https://github.com/ariankordi/FFL.js/)** - Rendering Miis locally would not be possible without this library. Instructions for finding FFLResHigh are also learned from [ariankordi's FFL-Testing repository](https://github.com/ariankordi/FFL-Testing).

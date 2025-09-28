@@ -2069,7 +2069,7 @@ function convertMii(jsonIn,typeTo){
     }
     return miiTo;
 }
-function convert3DSMiiToStudio(jsonIn) {
+function convertMiiToStudio(jsonIn) {
     if (!["3ds", "wii u"].includes(jsonIn.console?.toLowerCase())) {
         jsonIn = convertMii(jsonIn);
     }
@@ -2138,13 +2138,6 @@ function convert3DSMiiToStudio(jsonIn) {
     studioMii[0x22] = mii.mole.yPos;
     return encodeStudio(studioMii);
 }
-
-/**
- * Reads a Wii Mii binary file or binary string and converts it into a WiiMii JSON object.
- *
- * @param {string|Buffer} binOrPath - Either a path to a binary file or a binary string
- * @returns {Promise<WiiMii & { console: 'wii' }>} - The extracted Mii JSON.
- */
 async function readWiiBin(binOrPath) {
     let data;
     if (/[^01]/ig.test(binOrPath)) {
@@ -2158,7 +2151,6 @@ async function readWiiBin(binOrPath) {
 
     return thisMii;
 }
-
 async function read3DSQR(binOrPath,returnDecryptedBin) {
     let qrCode;
     if (/[^01]/ig.test(binOrPath)) {
@@ -2196,19 +2188,20 @@ async function renderMiiWithStudio(jsonIn){
     var studioMii=convert3DSMiiToStudio(jsonIn);
     return await downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + studioMii + "&width=270&type=face");
 }
-/**
- * Creates a Mii face render using FFL.js/Three.js/gl-headless.
- * @example
- * const fs = require('fs');
- * // NOTE: ASSUMES that this function IS EXPORTED in index.js.
- * const createFFLMiiIcon = require('./index.js').createFFLMiiIcon;
- * const miiData = '000d142a303f434b717a7b84939ba6b2bbbec5cbc9d0e2ea010d15252b3250535960736f726870757f8289a0a7aeb1';
- * const outFilePath = 'mii-render.png';
- * const fflRes = fs.readFileSync('./FFLResHigh.dat');
- * createFFLMiiIcon(miiData, 512, 512, fflRes)
- *   .then(pngBytes => fs.writeFileSync(outFilePath, pngBytes));
- */
 async function createFFLMiiIcon(data, width, height, fflRes) {
+    /**
+     * Creates a Mii face render using FFL.js/Three.js/gl-headless.
+     * @example
+     * const fs = require('fs');
+     * // NOTE: ASSUMES that this function IS EXPORTED in index.js.
+     * const createFFLMiiIcon = require('./index.js').createFFLMiiIcon;
+     * const miiData = '000d142a303f434b717a7b84939ba6b2bbbec5cbc9d0e2ea010d15252b3250535960736f726870757f8289a0a7aeb1';
+     * const outFilePath = 'mii-render.png';
+     * const fflRes = fs.readFileSync('./FFLResHigh.dat');
+     * createFFLMiiIcon(miiData, 512, 512, fflRes)
+     *   .then(pngBytes => fs.writeFileSync(outFilePath, pngBytes));
+     */
+
     // Create WebGL context.
     const gl = createGL(width, height);
     if (!gl) {
@@ -2311,7 +2304,12 @@ async function writeWiiBin(jsonIn, outPath) {
         convertMii(jsonIn);
     }
     const miiBuffer = jsonToMiiBuffer(jsonIn, WII_MII_SCHEMA, lookupTables, 74);
-    await fs.promises.writeFile(outPath, miiBuffer);
+    if(outPath){
+        await fs.promises.writeFile(outPath, miiBuffer);
+    }
+    else{
+        return miiBuffer;
+    }
 }
 async function write3DSQR(miiJson, outPath, fflRes = getFFLRes()) {
     if (!["3ds", "wii u"].includes(miiJson.console?.toLowerCase())) {
@@ -2645,7 +2643,7 @@ module.exports = {
 
     //Functions
     convertMii,
-    convert3DSMiiToStudio,
+    convertMiiToStudio,
     
     readWiiBin,
     read3DSQR,
@@ -2658,5 +2656,5 @@ module.exports = {
 
     //make3DSChild, //WIP
     
-    generateInstructions,
+    generateInstructions
 }
