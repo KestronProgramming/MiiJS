@@ -6,6 +6,7 @@ MiiJS is a JS library for working with Mii characters in an accessible way. Read
 `npm install miijs` | `npm i miijs`
 
 <hr>
+
 ## Table of Contents
 - [Functions](#functions)
 - [Special Miis](#special-miis)
