@@ -12,11 +12,12 @@ const asmCrypto=require("./asmCrypto.js");
 const path=require("path");
 const createGL = require('gl');
 
+const req=require("require-esm-in-cjs");
 const {
   createCharModel, initCharModelTextures,
   initializeFFL, exitFFL, parseHexOrB64ToUint8Array,
   setIsWebGL1State, getCameraForViewType, ViewType
-} = require("ffl.js/ffl.js");
+} = req("ffl.js/ffl.js");
 const ModuleFFL = require("ffl.js/examples/ffl-emscripten-single-file.js");
 const FFLShaderMaterial = require("ffl.js/FFLShaderMaterial.js");
 
@@ -734,7 +735,6 @@ var convTables={
         "10",9,11
     ]
 };
-
 const kidNames={
     "Male":[
         "Aaron",
@@ -1223,9 +1223,7 @@ const defaultMii={
         "meta":{
             "name": "Madison",
             "creatorName": "",
-            "console":"3ds",
-            "miiId":"148",
-            "systemId":"148"
+            "console":"3ds"
         },
         "perms": {
             "sharing": false,
@@ -1300,7 +1298,7 @@ const defaultMii={
             "xPosition": 2,
             "yPosition": 20
         },
-        "name": "Madison",
+        "name": "",
         "creatorName": ""
     },
     "female":{
@@ -1316,9 +1314,7 @@ const defaultMii={
         "meta":{
             "name": "Madison",
             "creatorName": "",
-            "console":"3ds",
-            "miiId":"148",
-            "systemId":"148"
+            "console":"3ds"
         },
         "perms": {
             "sharing": false,
@@ -1393,7 +1389,7 @@ const defaultMii={
             "xPosition": 2,
             "yPosition": 20
         },
-        "name": "Madison",
+        "name": "",
         "creatorName": ""
     }
 };
@@ -1900,171 +1896,54 @@ function convertMii(jsonIn,typeTo){
         return jsonIn;
     }
     let mii=jsonIn;
-    var miiTo={};
+    var miiTo=structuredClone(mii);
     if(["wii u","3ds"].includes(typeFrom)){
-        miiTo={
-            info:{},
-            face:{},
-            nose:{},
-            mouth:{},
-            mole:{},
-            hair:{},
-            eyebrows:{},
-            eyes:{},
-            glasses:{},
-            facialHair:{}
-        };
-        miiTo.creatorName=mii.creatorName;
-        miiTo.info.creatorName=miiTo.creatorName;
-        miiTo.name=mii.name;
-        miiTo.info.name=miiTo.name;
-        miiTo.info.gender=mii.info.gender;
-        miiTo.info.systemId="ffffffff";
-        let miiId;
-        switch(mii.info.type){
-            case "Special":
-                miiId="01000110";
-            break;
-            case "Foreign":
-                miiId="11000110";
-            break;
-            default:
-                miiId="10001001";
-            break;
-        }
-        for(var i=0;i<3;i++){
-            miiId+=Math.floor(Math.random()*255).toString(2).padStart(8,"0");
-        }
-        miiTo.info.miiId+=miiId;
-        miiTo.info.mingle=mii.perms.copying;
-        miiTo.info.birthMonth=mii.info.birthMonth;
-        miiTo.info.birthday=mii.info.birthday;
-        miiTo.info.favColor=mii.info.favColor;
-        miiTo.info.favorited=false;
-        miiTo.info.height=mii.info.height;
-        miiTo.info.weight=mii.info.weight;
-        miiTo.info.downloadedFromCheckMiiOut=false;
-        miiTo.face.shape=convTables.face3DSToWii[mii.face.shape];
-        miiTo.face.col=mii.face.col;
+        miiTo.perms.mingle=mii.perms.sharing;
+        miiTo.perms.fromCheckMiiOut=false;
+        miiTo.face.type=convTables.face3DSToWii[mii.face.type];
         //We prioritize Facial Features here because the Wii supports more of those than they do Makeup types, and is more likely to apply. The 3DS has two separate fields, so you can have makeup and wrinkles applied at the same time. The Wii only has one that covers both.
-        if(typeof(convTables.features3DSToWii[faceFeatures3DS.indexOf(mii.face.feature)])==='string'){
-            miiTo.face.feature=wiiFaceFeatures[convTables.makeup3DSToWii[makeups3DS.indexOf(mii.face.makeup)]];
+        if(typeof(convTables.features3DSToWii[mii.face.feature])==='string'){
+            miiTo.face.feature=convTables.makeup3DSToWii[mii.face.makeup];
         }
         else{
-            miiTo.face.feature=wiiFaceFeatures[convTables.features3DSToWii[features3DS.indexOf(mii.face.feature)]];
+            miiTo.face.feature=convTables.features3DSToWii[mii.face.feature];
         }
-        miiTo.nose.type=convTables.nose3DSToWii[mii.nose.type[0]][mii.nose.type[1]];
-        miiTo.nose.size=mii.nose.size;
-        miiTo.nose.yPos=mii.nose.yPos;
-        miiTo.mouth.type=convTables.mouth3DSToWii[mii.mouth.type[0]][mii.mouth.type[1]];
-        miiTo.mouth.col=wiiMouthColors[mouthCols3DS.indexOf(mii.mouth.col)>2?0:mouthCols3DS.indexOf(mii.mouth.col)];
-        miiTo.mouth.size=mii.mouth.size;
-        miiTo.mouth.yPos=mii.mouth.yPos;
-        miiTo.mole=mii.mole;
-        miiTo.hair.col=mii.hair.col;
-        miiTo.hair.flipped=mii.hair.flipped;
-        miiTo.hair.type=convTables.hair3DSToWii[mii.hair.style[0]][mii.hair.style[1]];
-        miiTo.eyebrows.type=convTables.eyebrows3DSToWii[mii.eyebrows.style[0]][mii.eyebrows.style[1]];
-        miiTo.eyebrows.col=mii.eyebrows.col;
-        miiTo.eyebrows.rotation=mii.eyebrows.rot;
-        miiTo.eyebrows.size=mii.eyebrows.size;
-        miiTo.eyebrows.yPos=mii.eyebrows.yPos;
-        miiTo.eyebrows.distApart=mii.eyebrows.distApart;
-        miiTo.eyes.type=convTables.eyes3DSToWii[mii.eyes.type[0]][mii.eyes.type[1]];
-        miiTo.eyes.rotation=mii.eyes.rot;
-        miiTo.eyes.yPos=mii.eyes.yPos;
-        miiTo.eyes.col=mii.eyes.col;
-        miiTo.eyes.size=mii.eyes.size;
-        miiTo.eyes.distApart=mii.eyes.distApart;
-        miiTo.glasses=mii.glasses;
-        miiTo.glasses.col=wiiGlassesCols[glassesCols3DS.indexOf(mii.glasses.col)];
-        miiTo.facialHair=mii.facialHair;
-        if(miiTo.facialHair.mustacheType===4){
-            miiTo.facialHair.mustacheType=2;
+        miiTo.nose.type=convTables.nose3DSToWii[mii.nose.page][mii.nose.type];
+        miiTo.mouth.type=convTables.mouth3DSToWii[mii.mouth.page][mii.mouth.type];
+        miiTo.mouth.color=mii.mouth.col>2?0:mii.mouth.col;
+        miiTo.hair.type=convTables.hair3DSToWii[mii.hair.page][mii.hair.type];
+        miiTo.eyebrows.type=convTables.eyebrows3DSToWii[mii.eyebrows.page][mii.eyebrows.type];
+        miiTo.eyes.type=convTables.eyes3DSToWii[mii.eyes.page][mii.eyes.type];
+        miiTo.glasses.col=mii.glasses.col;
+        if(miiTo.beard.mustache.type===4){
+            miiTo.beard.mustache.type=2;
         }
-        else if(miiTo.facialHair.mustacheType===5){
-            miiTo.facialHair.mustacheType=0;
-            miiTo.facialHair.beardType=1;
+        else if(miiTo.beard.mustache.type===5){
+            miiTo.beard.mustache.type=0;
+            miiTo.beard.type=1;
         }
-        if(mii.facialHair.beardType>3){
-            mii.facialHair.beardType=3;
+        if(mii.beard.type>3){
+            mii.beard.type=3;
         }
         miiTo.console="wii";
     }
     else if(typeFrom==="wii"){
-        miiTo={
-            info:{},
-            perms:{},
-            hair:{},
-            face:{},
-            eyes:{},
-            eyebrows:{},
-            nose:{},
-            mouth:{},
-            facialHair:{},
-            glasses:{},
-            mole:{}
-        };
-        miiTo.info.birthday=mii.info.birthday;
-        miiTo.info.birthMonth=mii.info.birthMonth;
-        miiTo.name=mii.name;
-        miiTo.info.name=miiTo.name;
-        miiTo.creatorName=mii.creatorName;
-        miiTo.info.creatorName=mii.creatorName;
-        miiTo.info.height=mii.info.height;
-        miiTo.info.weight=mii.info.weight;
-        miiTo.info.favColor=mii.info.favColor;
-        miiTo.info.gender=mii.info.gender;
         miiTo.perms.sharing=mii.info.mingle;
         miiTo.perms.copying=mii.info.mingle;
-        miiTo.hair.col=hairCols[hairCols.indexOf(mii.hair.col)];
-        miiTo.hair.flipped=mii.hair.flipped;
-        miiTo.hair.style=convTables.hairWiiTo3DS[+mii.hair.type[0]-1][0+(3*(+mii.hair.type[2]-1))+(+mii.hair.type[1]-1)];
+        miiTo.hair.style=convTables.hairWiiTo3DS[mii.hair.page][mii.hair.type];
         miiTo.face.shape=convTables.faceWiiTo3DS[mii.face.shape];
-        miiTo.face.col=skinCols[skinCols.indexOf(mii.face.col)];
-        miiTo.face.makeup="None";
-        miiTo.face.feature="None";
-        if(typeof(convTables.featureWiiTo3DS[wiiFaceFeatures.indexOf(mii.face.feature)])==='string'){
-            miiTo.face.makeup=makeups3DS[+convTables.featureWiiTo3DS[wiiFaceFeatures.indexOf(mii.face.feature)]];
+        miiTo.face.makeup=0;
+        miiTo.face.feature=0;
+        if(typeof(convTables.featureWiiTo3DS[mii.face.feature])==='string'){
+            miiTo.face.makeup=makeups3DS[+convTables.featureWiiTo3DS[mii.face.feature]];
         }
         else{
-            miiTo.face.feature=faceFeatures3DS[convTables.featureWiiTo3DS[wiiFaceFeatures.indexOf(mii.face.feature)]];
+            miiTo.face.feature=faceFeatures3DS[convTables.featureWiiTo3DS[mii.face.feature]];
         }
-        miiTo.eyes.col=eyeCols[eyeCols.indexOf(mii.eyes.col)];
-        miiTo.eyes.type=[+mii.eyes.type[0]-1,(+mii.eyes.type[1]-1)+(3*(+mii.eyes.type[2]-1))];
-        miiTo.eyes.size=mii.eyes.size;
         miiTo.eyes.squash=3;
-        miiTo.eyes.rot=mii.eyes.rotation;
-        miiTo.eyes.distApart=mii.eyes.distApart;
-        miiTo.eyes.yPos=mii.eyes.yPos;
-        miiTo.eyebrows.style=[+mii.eyebrows.type[0]-1,(+mii.eyebrows.type[1]-1)+(3*(+mii.eyebrows.type[2]-1))];
-        miiTo.eyebrows.col=hairCols[hairCols.indexOf(mii.eyebrows.col)];
-        miiTo.eyebrows.size=mii.eyebrows.size;
         miiTo.eyebrows.squash=3;
-        miiTo.eyebrows.rot=mii.eyebrows.rotation;
-        miiTo.eyebrows.distApart=mii.eyebrows.distApart;
-        miiTo.eyebrows.yPos=mii.eyebrows.yPos;
-        miiTo.nose.type=[0,mii.nose.type];
-        miiTo.nose.size=mii.nose.size;
-        miiTo.nose.yPos=mii.nose.yPos;
-        miiTo.mouth.type=[+mii.mouth.type[0]-1,(+mii.mouth.type[1]-1)+(3*(+mii.mouth.type[2]-1))];
-        miiTo.mouth.col=mouthCols3DS[wiiMouthColors.indexOf(mii.mouth.col)];
-        miiTo.mouth.size=mii.mouth.size;
+        miiTo.mouth.col=mouthCols3DS[mii.mouth.col];//qk
         miiTo.mouth.squash=3;
-        miiTo.mouth.yPos=mii.mouth.yPos;
-        miiTo.facialHair.mustacheType=mii.facialHair.mustacheType;
-        miiTo.facialHair.beardType=mii.facialHair.beardType;
-        miiTo.facialHair.col=hairCols[hairCols.indexOf(mii.facialHair.col)];
-        miiTo.facialHair.mustacheSize=mii.facialHair.mustacheSize;
-        miiTo.facialHair.mustacheYPos=mii.facialHair.mustacheYPos;
-        miiTo.glasses.type=mii.glasses.type;
-        miiTo.glasses.col=glassesCols3DS[["Grey","Brown","Red","Blue","Yellow","White"].indexOf(mii.glasses.col)];
-        miiTo.glasses.size=mii.glasses.size;
-        miiTo.glasses.yPos=mii.glasses.yPos;
-        miiTo.mole.on=mii.mole.on;
-        miiTo.mole.size=mii.mole.size;
-        miiTo.mole.xPos=mii.mole.xPos;
-        miiTo.mole.yPos=mii.mole.yPos;
         miiTo.console="3ds";
     }
     return miiTo;
@@ -2185,7 +2064,7 @@ async function renderMiiWithStudio(jsonIn){
     if(!["3ds","wii u"].includes(jsonIn.console?.toLowerCase())){
         jsonIn=convertMii(jsonIn);
     }
-    var studioMii=convert3DSMiiToStudio(jsonIn);
+    var studioMii=convertMiiToStudio(jsonIn);
     return await downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + studioMii + "&width=270&type=face");
 }
 async function createFFLMiiIcon(data, width, height, fflRes) {
@@ -2294,7 +2173,7 @@ async function renderMii(jsonIn, fflRes=getFFLRes()){
   if(!["3ds","wii u"].includes(jsonIn.console?.toLowerCase())){
       jsonIn=convertMii(jsonIn);
   }
-  const studioMii = convert3DSMiiToStudio(jsonIn);
+  const studioMii = convertMiiToStudio(jsonIn);
   const width = height = 600;
 
   return createFFLMiiIcon(studioMii, width, height, fflRes);
