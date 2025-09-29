@@ -12,12 +12,11 @@ const asmCrypto=require("./asmCrypto.js");
 const path=require("path");
 const createGL = require('gl');
 
-const req=require("require-esm-in-cjs");
 const {
   createCharModel, initCharModelTextures,
   initializeFFL, exitFFL, parseHexOrB64ToUint8Array,
   setIsWebGL1State, getCameraForViewType, ViewType
-} = req("ffl.js/ffl.js");
+} = require("./fflWrapper.js");
 const ModuleFFL = require("ffl.js/examples/ffl-emscripten-single-file.js");
 const FFLShaderMaterial = require("ffl.js/FFLShaderMaterial.js");
 
@@ -65,8 +64,11 @@ function getFFLRes() {
     // If we've already tried loading, just return the result
     if (_fflRes !== undefined) return _fflRes;
     for (const path of [ "./FFLResHigh.dat", "./ffl/FFLResHigh.dat" ]) {
-        if (fs.existsSync(path))
-            return _fflRes = new Uint8Array(fs.readFileSync(path));
+        if (fs.existsSync(path)) {
+            // Convert Buffer to Uint8Array explicitly
+            const buffer = fs.readFileSync(path);
+            return _fflRes = new Uint8Array(buffer);
+        }
     }
     // If no file found, mark as null
     return _fflRes = null;
@@ -1955,9 +1957,9 @@ function convertMiiToStudio(jsonIn) {
     var mii = jsonIn;
     var studioMii = new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
     studioMii[0x16] = mii.general.gender;
-    studioMii[0x15] = mii.info.favoriteColor;
-    studioMii[0x1E] = mii.info.height;
-    studioMii[2] = mii.info.weight;
+    studioMii[0x15] = mii.general.favoriteColor;
+    studioMii[0x1E] = mii.general.height;
+    studioMii[2] = mii.general.weight;
     studioMii[0x13] = lookupTables.faces.values[mii.face.type];
     studioMii[0x11] = mii.face.color;
     studioMii[0x14] = mii.face.feature;
@@ -1985,7 +1987,7 @@ function convertMiiToStudio(jsonIn) {
     studioMii[0x2B] = mii.nose.size;
     studioMii[0x2D] = mii.nose.yPosition;
     studioMii[0x26] = lookupTables.mouths.values[mii.mouth.page][mii.mouth.type];
-    studioMii[0x24] = mii.mouth.col;
+    studioMii[0x24] = mii.mouth.color;
     if (studioMii[0x24] < 4) {
         studioMii[0x24] += 19;
     } else {
@@ -1993,15 +1995,15 @@ function convertMiiToStudio(jsonIn) {
     }
     studioMii[0x25] = mii.mouth.size;
     studioMii[0x23] = mii.mouth.squash;
-    studioMii[0x27] = mii.mouth.yPos;
-    studioMii[0x29] = mii.facialHair.mustacheType;
-    studioMii[1] = mii.facialHair.beardType;
-    studioMii[0] = lookupTables.hairCols.indexOf(mii.facialHair.col);
+    studioMii[0x27] = mii.mouth.yPosition;
+    studioMii[0x29] = mii.beard.mustache.type;
+    studioMii[1] = mii.beard.beardType;
+    studioMii[0] = mii.beard.color;
     if (!studioMii[0]) studioMii[0] = 8;
-    studioMii[0x28] = mii.facialHair.mustacheSize;
-    studioMii[0x2A] = mii.facialHair.mustacheYPos;
+    studioMii[0x28] = mii.beard.mustache.size;
+    studioMii[0x2A] = mii.beard.mustache.yPosition;
     studioMii[0x19] = mii.glasses.type;
-    studioMii[0x17] = lookupTables.glassesCols3DS.indexOf(mii.glasses.col);
+    studioMii[0x17] = mii.glasses.color;
     if (!studioMii[0x17]) {
         studioMii[0x17] = 8;
     } else if (studioMii[0x17] < 6) {
@@ -2115,16 +2117,20 @@ async function createFFLMiiIcon(data, width, height, fflRes) {
 
     let ffl, currentCharModel;
 
-    //const _realConsoleDebug = console.debug;
-    //console.debug = () => { };
+    const _realConsoleDebug = console.debug;
+    console.debug = () => { };
     try {
         // Initialize FFL
         ffl = await initializeFFL(fflRes, ModuleFFL);
 
         // Create Mii model and add to the scene.
         const studioRaw = parseHexOrB64ToUint8Array(data); // Parse studio data
-        currentCharModel = createCharModel(studioRaw, null,
-          FFLShaderMaterial, ffl.module);
+        
+        // Convert Uint8Array to Buffer for struct-fu compatibility
+        const studioBuffer = Buffer.from(studioRaw);
+        
+        currentCharModel = createCharModel(studioBuffer, null,
+        FFLShaderMaterial, ffl.module);
         initCharModelTextures(currentCharModel, renderer); // Initialize fully
         scene.add(currentCharModel.meshes); // Add to scene
 
@@ -2170,13 +2176,13 @@ async function createFFLMiiIcon(data, width, height, fflRes) {
     }
 }
 async function renderMii(jsonIn, fflRes=getFFLRes()){
-  if(!["3ds","wii u"].includes(jsonIn.console?.toLowerCase())){
-      jsonIn=convertMii(jsonIn);
-  }
-  const studioMii = convertMiiToStudio(jsonIn);
-  const width = height = 600;
+    if(!["3ds","wii u"].includes(jsonIn.console?.toLowerCase())){
+        jsonIn=convertMii(jsonIn);
+    }
+    const studioMii = convertMiiToStudio(jsonIn);
+    const width = height = 600;
 
-  return createFFLMiiIcon(studioMii, width, height, fflRes);
+    return createFFLMiiIcon(studioMii, width, height, fflRes);
 }
 async function writeWiiBin(jsonIn, outPath) {
     if (jsonIn.console?.toLowerCase() !== "wii") {

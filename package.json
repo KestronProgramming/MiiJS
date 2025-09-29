@@ -1,10 +1,11 @@
 {
   "name": "miijs",
-  "version": "2.1.0",
+  "version": "2.1.2",
   "description": "Work with Mii characters in every possible way needed for your project.",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "node ./patch-ffl.js"
   },
   "repository": {
     "type": "git",
@@ -26,7 +27,7 @@
   "homepage": "https://github.com/KestronProgramming/MiiJS#readme",
   "dependencies": {
     "canvas": "^3.1.0",
-    "ffl.js": "github:ariankordi/FFL.js#4f83ae2",
+    "ffl.js": "github:ariankordi/FFL.js#06ede8f",
     "gl": "^8.1.6",
     "https": "^1.0.0",
     "jimp": "0.22.12",
@@ -35,6 +36,7 @@
     "path": "^0.12.7",
     "qr-code-styling": "^1.9.2",
     "require-esm-in-cjs": "^0.1.0",
+    "struct-fu": "^1.2.1",
     "three": "^0.162.0"
   },
   "devDependencies": {
