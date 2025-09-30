@@ -57,6 +57,21 @@ function byteToString(int){
     if(str.length < 2)str = '0' + str;
     return str;
 }
+function getBinaryFromAddress(addr, bin){
+    let byte = bin.readUInt8(addr);
+    let binaryString = '';
+    for (let i = 7; i >= 0; i--) {
+        binaryString += ((byte >> i) & 1) ? '1' : '0';
+    }
+    return binaryString;
+}
+function getKeyByValue(object, value) {
+    for (var key in object) {
+      if (object[key] === value) {
+        return key;
+      }
+    }
+}
 
 //If FFLResHigh.dat is in the same directory as Node.js is calling the library from, use it by default
 let _fflRes; // undefined initially
@@ -111,10 +126,13 @@ function encodeAesCcm(data){
 
 //Miscellaneous Tables
 const lookupTables = {
+    //Universals
     favCols: ["Red", "Orange", "Yellow", "Lime", "Green", "Blue", "Cyan", "Pink", "Purple", "Brown", "White", "Black"],
     skinCols: ["White", "Tanned White", "Darker White", "Tanned Darker", "Mostly Black", "Black"],
     hairCols: ["Black", "Brown", "Red", "Reddish Brown", "Grey", "Light Brown", "Dark Blonde", "Blonde"],
     eyeCols: ["Black", "Grey", "Brown", "Lime", "Blue", "Green"],
+
+    //Wii fields
     wiiFaceFeatures: ["None", "Blush", "Makeup and Blush", "Freckles", "Bags", "Wrinkles on Cheeks", "Wrinkles near Eyes", "Chin Wrinkle", "Makeup", "Stubble", "Wrinkles near Mouth", "Wrinkles"],
     wiiMouthColors: ["Peach", "Red", "Pink"],
     wiiGlassesCols: ["Grey", "Brown", "Red", "Blue", "Yellow", "White"],
@@ -131,183 +149,182 @@ const lookupTables = {
         "9": 9,
         "7": 10,
     },
-
     pages:{
         mouths: {
-            '0': '1',
-            '1': '1',
-            '2': '2',
-            '3': '2',
-            '4': '2',
-            '5': '1',
-            '6': '1',
-            '7': '2',
-            '8': '1',
-            '9': '2',
-            '10': '1',
-            '11': '2',
-            '12': '2',
-            '13': '1',
-            '14': '2',
-            '15': '2',
-            '16': '1',
-            '17': '2',
-            '18': '2',
-            '19': '1',
-            '20': '2',
-            '21': '1',
-            '22': '1',
-            '23': '1'
+            '0': 1,
+            '1': 1,
+            '2': 2,
+            '3': 2,
+            '4': 2,
+            '5': 1,
+            '6': 1,
+            '7': 2,
+            '8': 1,
+            '9': 2,
+            '10': 1,
+            '11': 2,
+            '12': 2,
+            '13': 1,
+            '14': 2,
+            '15': 2,
+            '16': 1,
+            '17': 2,
+            '18': 2,
+            '19': 1,
+            '20': 2,
+            '21': 1,
+            '22': 1,
+            '23': 1
         },
         eyebrows:{
-            '0': '1',
-            '1': '1',
-            '2': '2',
-            '3': '2',
-            '4': '1',
-            '5': '1',
-            '6': '1',
-            '7': '1',
-            '8': '1',
-            '9': '1',
-            '10': '2',
-            '11': '2',
-            '12': '1',
-            '13': '2',
-            '14': '2',
-            '15': '2',
-            '16': '2',
-            '17': '1',
-            '18': '2',
-            '19': '1',
-            '20': '2',
-            '21': '1',
-            '22': '2',
-            '23': '2'
+            '0': 1,
+            '1': 1,
+            '2': 2,
+            '3': 2,
+            '4': 1,
+            '5': 1,
+            '6': 1,
+            '7': 1,
+            '8': 1,
+            '9': 1,
+            '10': 2,
+            '11': 2,
+            '12': 1,
+            '13': 2,
+            '14': 2,
+            '15': 2,
+            '16': 2,
+            '17': 1,
+            '18': 2,
+            '19': 1,
+            '20': 2,
+            '21': 1,
+            '22': 2,
+            '23': 2
         },
         eyes:{
-            '0': '1',
-            '1': '1',
-            '2': '1',
-            '3': '4',
-            '4': '1',
-            '5': '3',
-            '6': '3',
-            '7': '4',
-            '8': '1',
-            '9': '2',
-            '10': '4',
-            '11': '2',
-            '12': '2',
-            '13': '3',
-            '14': '4',
-            '15': '1',
-            '16': '1',
-            '17': '1',
-            '18': '3',
-            '19': '2',
-            '20': '1',
-            '21': '2',
-            '22': '4',
-            '23': '2',
-            '24': '3',
-            '25': '2',
-            '26': '1',
-            '27': '1',
-            '28': '3',
-            '29': '4',
-            '30': '3',
-            '31': '3',
-            '32': '2',
-            '33': '2',
-            '34': '2',
-            '35': '2',
-            '36': '3',
-            '37': '3',
-            '38': '4',
-            '39': '1',
-            '40': '2',
-            '41': '3',
-            '42': '4',
-            '43': '4',
-            '44': '4',
-            '45': '4',
-            '46': '3',
-            '47': '4'
+            0: 1,
+            1: 1,
+            2: 1,
+            3: 4,
+            4: 1,
+            5: 3,
+            6: 3,
+            7: 4,
+            8: 1,
+            9: 2,
+            10: 4,
+            11: 2,
+            12: 2,
+            13: 3,
+            14: 4,
+            15: 1,
+            16: 1,
+            17: 1,
+            18: 3,
+            19: 2,
+            20: 1,
+            21: 2,
+            22: 4,
+            23: 2,
+            24: 3,
+            25: 2,
+            26: 1,
+            27: 1,
+            28: 3,
+            29: 4,
+            30: 3,
+            31: 3,
+            32: 2,
+            33: 2,
+            34: 2,
+            35: 2,
+            36: 3,
+            37: 3,
+            38: 4,
+            39: 1,
+            40: 2,
+            41: 3,
+            42: 4,
+            43: 4,
+            44: 4,
+            45: 4,
+            46: 3,
+            47: 4
         },
         hairs:{
-            '0': '5',
-            '1': '4',
-            '2': '6',
-            '3': '5',
-            '4': '4',
-            '5': '4',
-            '6': '5',
-            '7': '4',
-            '8': '4',
-            '9': '6',
-            '10': '5',
-            '11': '5',
-            '12': '4',
-            '13': '4',
-            '14': '5',
-            '15': '6',
-            '16': '6',
-            '17': '5',
-            '18': '6',
-            '19': '4',
-            '20': '5',
-            '21': '5',
-            '22': '5',
-            '23': '3',
-            '24': '6',
-            '25': '4',
-            '26': '4',
-            '27': '4',
-            '28': '6',
-            '29': '6',
-            '30': '3',
-            '31': '1',
-            '32': '2',
-            '33': '1',
-            '34': '3',
-            '35': '5',
-            '36': '3',
-            '37': '2',
-            '38': '3',
-            '39': '1',
-            '40': '1',
-            '41': '3',
-            '42': '3',
-            '43': '3',
-            '44': '1',
-            '45': '1',
-            '46': '6',
-            '47': '2',
-            '48': '2',
-            '49': '1',
-            '50': '2',
-            '51': '1',
-            '52': '2',
-            '53': '6',
-            '54': '3',
-            '55': '2',
-            '56': '1',
-            '57': '3',
-            '58': '2',
-            '59': '1',
-            '60': '2',
-            '61': '6',
-            '62': '2',
-            '63': '5',
-            '64': '2',
-            '65': '3',
-            '66': '2',
-            '67': '3',
-            '68': '1',
-            '69': '4',
-            '70': '1',
-            '71': '6'
+            '0': 5,
+            '1': 4,
+            '2': 6,
+            '3': 5,
+            '4': 4,
+            '5': 4,
+            '6': 5,
+            '7': 4,
+            '8': 4,
+            '9': 6,
+            '10': 5,
+            '11': 5,
+            '12': 4,
+            '13': 4,
+            '14': 5,
+            '15': 6,
+            '16': 6,
+            '17': 5,
+            '18': 6,
+            '19': 4,
+            '20': 5,
+            '21': 5,
+            '22': 5,
+            '23': 3,
+            '24': 6,
+            '25': 4,
+            '26': 4,
+            '27': 4,
+            '28': 6,
+            '29': 6,
+            '30': 3,
+            '31': 1,
+            '32': 2,
+            '33': 1,
+            '34': 3,
+            '35': 5,
+            '36': 3,
+            '37': 2,
+            '38': 3,
+            '39': 1,
+            '40': 1,
+            '41': 3,
+            '42': 3,
+            '43': 3,
+            '44': 1,
+            '45': 1,
+            '46': 6,
+            '47': 2,
+            '48': 2,
+            '49': 1,
+            '50': 2,
+            '51': 1,
+            '52': 2,
+            '53': 6,
+            '54': 3,
+            '55': 2,
+            '56': 1,
+            '57': 3,
+            '58': 2,
+            '59': 1,
+            '60': 2,
+            '61': 6,
+            '62': 2,
+            '63': 5,
+            '64': 2,
+            '65': 3,
+            '66': 2,
+            '67': 3,
+            '68': 1,
+            '69': 4,
+            '70': 1,
+            '71': 6
         }
     },
     types:{
@@ -487,6 +504,196 @@ const lookupTables = {
             "70": 5,
             "71": 8
         }
+    },
+    wiiNoses:{
+        '0': 1,
+        '1': 10,
+        '2': 2,
+        '3': 3,
+        '4': 6,
+        '5': 0,
+        '6': 5,
+        '7': 4,
+        '8': 8,
+        '9': 9,
+        '10': 7,
+        '11': 11
+    },
+    mouthTable:{
+        '0': '113',
+        '1': '121',
+        '2': '231',
+        '3': '222',
+        '4': '232',
+        '5': '132',
+        '6': '124',
+        '7': '211',
+        '8': '123',
+        '9': '221',
+        '10': '133',
+        '11': '223',
+        '12': '234',
+        '13': '134',
+        '14': '224',
+        '15': '213',
+        '16': '114',
+        '17': '212',
+        '18': '214',
+        '19': '131',
+        '20': '233',
+        '21': '112',
+        '22': '122',
+        '23': '111'
+    },
+    eyebrowTable:{
+        '0': '121',
+        '1': '112',
+        '2': '231',
+        '3': '212',
+        '4': '134',
+        '5': '124',
+        '6': '111',
+        '7': '113',
+        '8': '133',
+        '9': '122',
+        '10': '221',
+        '11': '211',
+        '12': '131',
+        '13': '223',
+        '14': '222',
+        '15': '213',
+        '16': '224',
+        '17': '114',
+        '18': '214',
+        '19': '132',
+        '20': '232',
+        '21': '123',
+        '22': '233',
+        '23': '234'
+    },
+    eyeTable:{
+        '0': '131',
+        '1': '113',
+        '2': '111',
+        '3': '413',
+        '4': '121',
+        '5': '311',
+        '6': '332',
+        '7': '411',
+        '8': '112',
+        '9': '222',
+        '10': '414',
+        '11': '221',
+        '12': '232',
+        '13': '331',
+        '14': '424',
+        '15': '114',
+        '16': '133',
+        '17': '132',
+        '18': '314',
+        '19': '231',
+        '20': '134',
+        '21': '233',
+        '22': '433',
+        '23': '213',
+        '24': '313',
+        '25': '214',
+        '26': '123',
+        '27': '124',
+        '28': '324',
+        '29': '432',
+        '30': '323',
+        '31': '333',
+        '32': '212',
+        '33': '211',
+        '34': '223',
+        '35': '234',
+        '36': '312',
+        '37': '322',
+        '38': '431',
+        '39': '122',
+        '40': '224',
+        '41': '321',
+        '42': '412',
+        '43': '423',
+        '44': '421',
+        '45': '422',
+        '46': '334',
+        '47': '434'
+    },
+    hairTable:{
+        '0': '534',
+        '1': '413',
+        '2': '632',
+        '3': '521',
+        '4': '422',
+        '5': '433',
+        '6': '522',
+        '7': '434',
+        '8': '414',
+        '9': '612',
+        '10': '512',
+        '11': '513',
+        '12': '411',
+        '13': '421',
+        '14': '511',
+        '15': '624',
+        '16': '621',
+        '17': '533',
+        '18': '622',
+        '19': '423',
+        '20': '532',
+        '21': '524',
+        '22': '531',
+        '23': '312',
+        '24': '614',
+        '25': '432',
+        '26': '412',
+        '27': '424',
+        '28': '613',
+        '29': '634',
+        '30': '314',
+        '31': '134',
+        '32': '211',
+        '33': '111',
+        '34': '334',
+        '35': '514',
+        '36': '313',
+        '37': '231',
+        '38': '321',
+        '39': '122',
+        '40': '121',
+        '41': '323',
+        '42': '331',
+        '43': '311',
+        '44': '112',
+        '45': '113',
+        '46': '631',
+        '47': '221',
+        '48': '212',
+        '49': '123',
+        '50': '223',
+        '51': '131',
+        '52': '232',
+        '53': '623',
+        '54': '332',
+        '55': '233',
+        '56': '114',
+        '57': '324',
+        '58': '213',
+        '59': '133',
+        '60': '224',
+        '61': '611',
+        '62': '234',
+        '63': '523',
+        '64': '214',
+        '65': '333',
+        '66': '222',
+        '67': '322',
+        '68': '124',
+        '69': '431',
+        '70': '132',
+        '71': '633'
     },
 
     // 3DS fields
@@ -735,6 +942,18 @@ var convTables={
         "9",5,2,
         3,7,8,
         "10",9,11
+    ],
+    formatTo:[
+        [0,1,2],
+        [3,4,5],
+        [6,7,8],
+        [9,10,11]
+    ],
+    formatFrom:[
+        "11","21","31",
+        "12","22","32",
+        "13","23","33",
+        "14","24","34"
     ]
 };
 const kidNames={
@@ -1510,7 +1729,30 @@ const encoders = {
             }
             return undefined;
         }
-    }, 
+    },
+    encodingTable: (decodedValue, field, tables) => {
+        const table = getNestedProperty(tables, field.encodingTable);
+        console.log(table);
+        if (!table) return "ERROR: could not find requested encoding table";
+
+        if (table.indexLookup){
+            if (table.paginated) {
+                if (!Array.isArray(decodedValue) || decodedValue.length !== 2) {
+                    return undefined;
+                }
+                const [page, index] = decodedValue;
+                if (page >= 0 && page < table.values.length && index >= 0 && index < table.values[page].length) {
+                    return table.values[page][index];
+                }
+                return undefined;
+            } else {
+                return "ERROR";
+            }
+        }
+        else{
+            return "ERROR";
+        }
+    },
     color: (value, field, T) => {
         const arr = T[field.colorArray];
         return arr?.indexOf(value) ?? value;
@@ -1690,7 +1932,13 @@ function jsonToMiiBuffer(miiData, schema, lookupTables = {}, totalBytes = 74) {
         let raw = getNestedProperty(miiData, fieldPath);
 
         // Run encoders
-        if (fieldDef.decoder && typeof encoders !== 'undefined' && encoders[fieldDef.decoder]) {
+        if (fieldDef.encodingTable && fieldDef.decoder && typeof encoders !== 'undefined' && encoders[fieldDef.decoder]){
+            if(fieldDef.encodingTable==="NONE"){
+                continue;
+            }
+            raw = encoders.encodingTable([raw,getNestedProperty(miiData,fieldDef.secondaryParameter)], fieldDef, lookupTables);
+        }
+        else if (fieldDef.decoder && typeof encoders !== 'undefined' && encoders[fieldDef.decoder]) {
             raw = encoders[fieldDef.decoder](raw, fieldDef, lookupTables);
         }
 
@@ -1725,7 +1973,7 @@ const WII_MII_SCHEMA = {
     'face.type': { byteOffset: 0x20, bitOffset: 0, bitLength: 3, decoder: 'number' },
     'face.color': { byteOffset: 0x20, bitOffset: 3, bitLength: 3, decoder: 'number' },
     'face.feature': { byteOffset: 0x20, bitOffset: 6, bitLength: 4, decoder: 'number' },
-    'hair.page': { byteOffset: 0x22, bitOffset: 0, bitLength: 7, decoder: 'lookup', lookupTable: 'hairs' },
+    'hair.page': { byteOffset: 0x22, bitOffset: 0, bitLength: 7, decoder: 'lookup', lookupTable: 'pages.hairs' },//Refuse, marked for destruction.
     'hair.type': { byteOffset: 0x22, bitOffset: 0, bitLength: 7, decoder: 'lookup', lookupTable: 'types.hairs' },
     'hair.color': { byteOffset: 0x22, bitOffset: 7, bitLength: 3, decoder: 'number' },
     'hair.flipped': { byteOffset: 0x23, bitOffset: 2, bitLength: 1, decoder: 'boolean' },
@@ -1736,8 +1984,8 @@ const WII_MII_SCHEMA = {
     'eyebrows.size': { byteOffset: 0x26, bitOffset: 3, bitLength: 4, decoder: 'number' },
     'eyebrows.yPosition': { byteOffset: 0x26, bitOffset: 7, bitLength: 5, decoder: 'number', offset: -3 },
     'eyebrows.distanceApart': { byteOffset: 0x27, bitOffset: 4, bitLength: 4, decoder: 'number' },
-    'eyes.page': { byteOffset: 0x28, bitOffset: 0, bitLength: 6, decoder: 'lookup', lookupTable: 'pages.eyes' },
-    'eyes.type': { byteOffset: 0x28, bitOffset: 0, bitLength: 6, decoder: 'lookup', lookupTable: 'types.eyes' },
+    'eyes.page': { byteOffset: 0x28, bitOffset: 0, bitLength: 6, decoder: 'lookup', lookupTable: 'pages.eyes', encodingTable: 'eyes', secondaryParameter: 'eyes.type' },//Refuse, marked for destruction.
+    'eyes.type': { byteOffset: 0x28, bitOffset: 0, bitLength: 6, decoder: 'lookup', lookupTable: 'types.eyes', encodingTable:'NONE' },
     'eyes.rotation': { byteOffset: 0x29, bitOffset: 0, bitLength: 3, decoder: 'number' },
     'eyes.yPosition': { byteOffset: 0x29, bitOffset: 3, bitLength: 5, decoder: 'number' },
     'eyes.color': { byteOffset: 0x2A, bitOffset: 0, bitLength: 3, decoder: 'number' },
@@ -1746,7 +1994,7 @@ const WII_MII_SCHEMA = {
     'nose.type': { byteOffset: 0x2C, bitOffset: 0, bitLength: 4, decoder: 'lookup', lookupTable: 'wiiNoses' },
     'nose.size': { byteOffset: 0x2C, bitOffset: 4, bitLength: 4, decoder: 'number' },
     'nose.yPosition': { byteOffset: 0x2D, bitOffset: 0, bitLength: 5, decoder: 'number' },
-    'mouth.page': { byteOffset: 0x2E, bitOffset: 0, bitLength: 5, decoder: 'lookup', lookupTable: 'pages.mouths' },
+    'mouth.page': { byteOffset: 0x2E, bitOffset: 0, bitLength: 5, decoder: 'lookup', lookupTable: 'pages.mouths' },//Refuse, marked for destruction.
     'mouth.type': { byteOffset: 0x2E, bitOffset: 0, bitLength: 5, decoder: 'lookup', lookupTable: 'types.mouths' },
     'mouth.color': { byteOffset: 0x2E, bitOffset: 5, bitLength: 2, decoder: 'number' },
     'mouth.size': { byteOffset: 0x2E, bitOffset: 7, bitLength: 4, decoder: 'number' },
@@ -1930,8 +2178,8 @@ function convertMii(jsonIn,typeTo){
         miiTo.console="wii";
     }
     else if(typeFrom==="wii"){
-        miiTo.perms.sharing=mii.info.mingle;
-        miiTo.perms.copying=mii.info.mingle;
+        miiTo.perms.sharing=mii.general.mingle;
+        miiTo.perms.copying=mii.general.mingle;
         miiTo.hair.style=convTables.hairWiiTo3DS[mii.hair.page][mii.hair.type];
         miiTo.face.shape=convTables.faceWiiTo3DS[mii.face.shape];
         miiTo.face.makeup=0;
@@ -2026,10 +2274,110 @@ async function readWiiBin(binOrPath) {
     } else {
         data = Buffer.from(binOrPath);
     }
+    var thisMii={
+        general:{},
+        perms:{},
+        meta:{},
+        face:{},
+        nose:{},
+        mouth:{},
+        mole:{},
+        hair:{},
+        eyebrows:{},
+        eyes:{},
+        glasses:{},
+        beard:{
+            mustache:{}
+        }
+    };
 
-    const thisMii = miiBufferToJson(data, WII_MII_SCHEMA, lookupTables, true);
-    thisMii.console = 'wii';
+    const get = address => getBinaryFromAddress(address, data);
 
+    var name="";
+    for(var i=0;i<10;i++){
+        name+=data.slice(3+i*2, 4+i*2)+"";
+    }
+    thisMii.meta.name=name.replaceAll("\x00","");
+    var cname="";
+    for(var i=0;i<10;i++){
+        cname+=data.slice(55+i*2, 56+i*2)+"";
+    }
+    thisMii.meta.creatorName=cname.replaceAll("\x00","");
+    thisMii.general.gender=get(0x00)[1];//0 for Male, 1 for Female
+    thisMii.meta.miiId=parseInt(get(0x18),2).toString(16)+parseInt(get(0x19),2).toString(16)+parseInt(get(0x1A),2).toString(16)+parseInt(get(0x1B),2).toString(16);
+    thisMii.meta.systemId=parseInt(get(0x1C),2).toString(16)+parseInt(get(0x1D),2).toString(16)+parseInt(get(0x1E),2).toString(16)+parseInt(get(0x1F),2).toString(16);
+    var temp=get(0x20);
+    thisMii.face.type=parseInt(temp.slice(0,3),2);//0-7
+    thisMii.face.color=parseInt(temp.slice(3,6),2);//0-5
+    temp=get(0x21);
+    thisMii.face.feature=parseInt(get(0x20).slice(6,8)+temp.slice(0,2),2);//0-11
+    thisMii.perms.mingle=temp[5]==="0";//0 for Mingle, 1 for Don't Mingle
+    temp=get(0x2C);
+    thisMii.nose.type=+getKeyByValue(lookupTables.wiiNoses,parseInt(temp.slice(0,4),2));
+    thisMii.nose.size=parseInt(temp.slice(4,8),2);
+    thisMii.nose.yPosition=parseInt(get(0x2D).slice(0,5),2);//From top to bottom, 0-18, default 9
+    temp=get(0x2E);
+    thisMii.mouth.page=+lookupTables.mouthTable[""+parseInt(temp.slice(0,5),2)][0]-1;
+    thisMii.mouth.type=convTables.formatTo[lookupTables.mouthTable[""+parseInt(temp.slice(0,5),2)][2]-1][lookupTables.mouthTable[""+parseInt(temp.slice(0,5),2)][1]-1];//0-23, Needs lookup table
+    thisMii.mouth.color=parseInt(temp.slice(5,7),2);//0-2, refer to mouthColors array
+    temp2=get(0x2F);
+    thisMii.mouth.size=parseInt(temp[7]+temp2.slice(0,3),2);//0-8, default 4
+    thisMii.mouth.yPosition=parseInt(temp2.slice(3,8),2);//0-18, default 9, from top to bottom
+    temp=get(0x00);
+    var temp2=get(0x01);
+    thisMii.general.birthMonth=parseInt(temp.slice(2,6),2);
+    thisMii.general.birthday=parseInt(temp.slice(6,8)+temp2.slice(0,3),2);
+    thisMii.general.favoriteColor=parseInt(temp2.slice(3,7),2);//0-11, refer to cols array
+    thisMii.general.height=parseInt(get(0x16),2);//0-127
+    thisMii.general.weight=parseInt(get(0x17),2);//0-127
+    thisMii.perms.fromCheckMiiOut=get(0x21)[7]==="0"?false:true;
+    temp=get(0x34);
+    temp2=get(0x35);
+    thisMii.mole.on=temp[0]==="0"?false:true;//0 for Off, 1 for On
+    thisMii.mole.size=parseInt(temp.slice(1,5),2);//0-8, default 4
+    thisMii.mole.xPosition=parseInt(temp2.slice(2,7),2);//0-16, Default 2
+    thisMii.mole.yPosition=parseInt(temp.slice(5,8)+temp2.slice(0,2),2);//Top to bottom
+    temp=get(0x22);
+    temp2=get(0x23);
+    thisMii.hair.page=+lookupTables.hairTable[""+parseInt(temp.slice(0,7),2)][0]-1;
+    thisMii.hair.type=+convTables.formatTo[lookupTables.hairTable[""+parseInt(temp.slice(0,7),2)][2]-1][lookupTables.hairTable[""+parseInt(temp.slice(0,7),2)][1]-1];//0-71, Needs lookup table
+    thisMii.hair.color=parseInt(temp[7]+temp2.slice(0,2),2);//0-7, refer to hairCols array
+    thisMii.hair.flipped=temp2[2]==="0"?false:true;
+    temp=get(0x24);
+    temp2=get(0x25);
+    thisMii.eyebrows.page=+lookupTables.eyebrowTable[""+parseInt(temp.slice(0,5),2)][0]-1;
+    thisMii.eyebrows.type=convTables.formatTo[lookupTables.eyebrowTable[""+parseInt(temp.slice(0,5),2)][2]-1][lookupTables.eyebrowTable[""+parseInt(temp.slice(0,5),2)][1]-1];//0-23, Needs lookup table
+    thisMii.eyebrows.rotation=parseInt(temp.slice(6,8)+temp2.slice(0,2),2);//0-11, default varies based on eyebrow type
+    temp=get(0x26);
+    temp2=get(0x27);
+    thisMii.eyebrows.color=parseInt(temp.slice(0,3),2);
+    thisMii.eyebrows.size=parseInt(temp.slice(3,7),2);//0-8, default 4
+    thisMii.eyebrows.yPosition=(parseInt(temp[7]+temp2.slice(0,4),2))-3;//0-15, default 10
+    thisMii.eyebrows.distanceApart=parseInt(temp2.slice(4,8),2);//0-12, default 2
+    thisMii.eyes.page=+lookupTables.eyeTable[parseInt(get(0x28).slice(0,6),2)][0]-1;//0-47, needs lookup table
+    thisMii.eyes.type=convTables.formatTo[lookupTables.eyeTable[parseInt(get(0x28).slice(0,6),2)][2]-1][lookupTables.eyeTable[parseInt(get(0x28).slice(0,6),2)][1]-1];//0-47, needs lookup table
+    temp=get(0x29);
+    thisMii.eyes.rotation=parseInt(temp.slice(0,3),2);//0-7, default varies based on eye type
+    thisMii.eyes.yPosition=parseInt(temp.slice(3,8),2);//0-18, default 12, top to bottom
+    temp=get(0x2A);
+    thisMii.eyes.color=parseInt(temp.slice(0,3),2);//0-5
+    thisMii.eyes.size=parseInt(temp.slice(4,7),2);//0-7, default 4
+    temp2=get(0x2B);
+    thisMii.eyes.distanceApart=parseInt(temp[7]+temp2.slice(0,3),2);//0-12, default 2
+    temp=get(0x30);
+    thisMii.glasses.type=parseInt(temp.slice(0,4),2);//0-8
+    thisMii.glasses.color=parseInt(temp.slice(4,7),2);//0-5
+    temp=get(0x31);
+    thisMii.glasses.size=parseInt(temp.slice(0,3),2);//0-7, default 4
+    thisMii.glasses.yPosition=parseInt(temp.slice(3,8),2);//0-20, default 10
+    temp=get(0x32);
+    temp2=get(0x33);
+    thisMii.beard.mustache.type=parseInt(temp.slice(0,2),2);//0-3
+    thisMii.beard.type=parseInt(temp.slice(2,4),2);//0-3
+    thisMii.beard.color=parseInt(temp.slice(4,7),2);//0-7
+    thisMii.beard.mustache.size=parseInt(temp[7]+temp2.slice(0,3),2);//0-30, default 20
+    thisMii.beard.mustache.yPosition=parseInt(temp2.slice(3,8),2);//0-16, default 2
+    thisMii.console="Wii";
     return thisMii;
 }
 async function read3DSQR(binOrPath,returnDecryptedBin) {
@@ -2041,7 +2389,11 @@ async function read3DSQR(binOrPath,returnDecryptedBin) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        qrCode = jsQR(imageData.data, imageData.width, imageData.height).binaryData;
+        qrCode = jsQR(imageData.data, imageData.width, imageData.height)?.binaryData;
+        if(!qrCode){
+            console.error("Failed to read QR Code.");
+            return;
+        }
     }
     else {
         var d = binOrPath.match(/(0|1){1,8}/g);
@@ -2059,7 +2411,7 @@ async function read3DSQR(binOrPath,returnDecryptedBin) {
         miiJson.console = '3ds';
         return miiJson;
     } else {
-        console.error('Failed to decode QR code');
+        console.error('Failed to read QR code.');
     }
 }
 async function renderMiiWithStudio(jsonIn){
@@ -2188,12 +2540,116 @@ async function writeWiiBin(jsonIn, outPath) {
     if (jsonIn.console?.toLowerCase() !== "wii") {
         convertMii(jsonIn);
     }
-    const miiBuffer = jsonToMiiBuffer(jsonIn, WII_MII_SCHEMA, lookupTables, 74);
+    var mii=jsonIn;
+    var miiBin="0";
+    miiBin+=mii.general.gender;
+    miiBin+=mii.general.birthMonth.toString(2).padStart(4,"0");
+    miiBin+=mii.general.birthday.toString(2).padStart(5,"0");
+    miiBin+=mii.general.favoriteColor.toString(2).padStart(4,"0");
+    miiBin+='0';
+    for(var i=0;i<10;i++){
+        if(i<mii.meta.name.length){
+            miiBin+=mii.meta.name.charCodeAt(i).toString(2).padStart(16,"0");
+        }
+        else{
+            miiBin+="0000000000000000";
+        }
+    }
+    miiBin+=mii.general.height.toString(2).padStart(8,"0");
+    miiBin+=mii.general.weight.toString(2).padStart(8,"0");
+    let miiId="";
+    switch(mii.meta.type){
+        case "Special":
+            miiId="01000110";
+        break;
+        case "Foreign":
+            miiId="11000110";
+        break;
+        default:
+            miiId="10001001";
+        break;
+    }
+    for(var i=0;i<3;i++){
+        miiId+=Math.floor(Math.random()*255).toString(2).padStart(8,"0");
+    }
+    miiBin+=miiId;
+    miiBin+="11111111".repeat(4);//System ID
+    miiBin+=mii.face.type.toString(2).padStart(3,"0");
+    miiBin+=mii.face.color.toString(2).padStart(3,"0");
+    miiBin+=mii.face.feature.toString(2).padStart(4,"0");
+    miiBin+="000";
+    if(mii.perms.mingle&&mii.meta.type==="Special"){
+        mii.perms.mingle=false;
+        console.error("A Special Mii cannot have Mingle on and still render on the Wii. Turned Mingle off in the output file.");
+    }
+    miiBin+=mii.perms.mingle?"0":"1";
+    miiBin+="0";
+    miiBin+=mii.perms.fromCheckMiiOut?"1":"0";
+    miiBin+=(+getKeyByValue(lookupTables.hairTable,`${mii.hair.page+1}${convTables.formatFrom[mii.hair.type]}`)).toString(2).padStart(7,"0");
+    miiBin+=mii.hair.color.toString(2).padStart(3,"0");
+    miiBin+=mii.hair.flipped?"1":"0";
+    miiBin+="00000";
+    miiBin+=(+getKeyByValue(lookupTables.eyebrowTable,`${mii.eyebrows.page+1}${convTables.formatFrom[mii.eyebrows.type]}`)).toString(2).padStart(5,"0");
+    miiBin+="0";
+    miiBin+=mii.eyebrows.rotation.toString(2).padStart(4,"0");
+    miiBin+="000000";
+    miiBin+=mii.eyebrows.color.toString(2).padStart(3,"0");
+    miiBin+=mii.eyebrows.size.toString(2).padStart(4,"0");
+    miiBin+=(mii.eyebrows.yPosition+3).toString(2).padStart(5,"0");
+    miiBin+=mii.eyebrows.distanceApart.toString(2).padStart(4,"0");
+    miiBin+=(+getKeyByValue(lookupTables.eyeTable,`${mii.eyes.page+1}${convTables.formatFrom[mii.eyes.type]}`)).toString(2).padStart(6,"0");
+    miiBin+="00";
+    miiBin+=mii.eyes.rotation.toString(2).padStart(3,"0");
+    miiBin+=mii.eyes.yPosition.toString(2).padStart(5,"0");
+    miiBin+=mii.eyes.color.toString(2).padStart(3,"0");
+    miiBin+="0";
+    miiBin+=mii.eyes.size.toString(2).padStart(3,"0");
+    miiBin+=mii.eyes.distanceApart.toString(2).padStart(4,"0");
+    miiBin+="00000";
+    miiBin+=lookupTables.wiiNoses[mii.nose.type].toString(2).padStart(4,"0");
+    miiBin+=mii.nose.size.toString(2).padStart(4,"0");
+    miiBin+=mii.nose.yPosition.toString(2).padStart(5,"0");
+    miiBin+="000";
+    miiBin+=(+getKeyByValue(lookupTables.mouthTable,`${mii.mouth.page+1}${convTables.formatFrom[mii.mouth.type]}`)).toString(2).padStart(5,"0");
+    miiBin+=mii.mouth.color.toString(2).padStart(2,"0");
+    miiBin+=mii.mouth.size.toString(2).padStart(4,"0");
+    miiBin+=mii.mouth.yPosition.toString(2).padStart(5,"0");
+    miiBin+=mii.glasses.type.toString(2).padStart(4,"0");
+    miiBin+=mii.glasses.color.toString(2).padStart(3,"0");
+    miiBin+="0";
+    miiBin+=mii.glasses.size.toString(2).padStart(3,"0");
+    miiBin+=mii.glasses.yPosition.toString(2).padStart(5,"0");
+    miiBin+=mii.beard.mustache.type.toString(2).padStart(2,"0");
+    miiBin+=mii.beard.type.toString(2).padStart(2,"0");
+    miiBin+=mii.beard.color.toString(2).padStart(3,"0");
+    miiBin+=mii.beard.mustache.size.toString(2).padStart(4,"0");
+    miiBin+=mii.beard.mustache.yPosition.toString(2).padStart(5,"0");
+    miiBin+=mii.mole.on?"1":"0";
+    miiBin+=mii.mole.size.toString(2).padStart(4,"0");
+    miiBin+=mii.mole.yPosition.toString(2).padStart(5,"0");
+    miiBin+=mii.mole.xPosition.toString(2).padStart(5,"0");
+    miiBin+="0";
+    for(var i=0;i<10;i++){
+        if(i<mii.meta.creatorName.length){
+            miiBin+=mii.meta.creatorName.charCodeAt(i).toString(2).padStart(16,"0");
+        }
+        else{
+            miiBin+="0000000000000000";
+        }
+    }
+    
+    //Writing based on miiBin
+    var toWrite=miiBin.match(/.{1,8}/g);
+    var buffers=[];
+    for(var i=0;i<toWrite.length;i++){
+        buffers.push(parseInt(toWrite[i],2));
+    }
+    toWrite=Buffer.from(buffers);
     if(outPath){
-        await fs.promises.writeFile(outPath, miiBuffer);
+        await fs.promises.writeFile(outPath, toWrite);
     }
     else{
-        return miiBuffer;
+        return toWrite;
     }
 }
 async function write3DSQR(miiJson, outPath, fflRes = getFFLRes()) {
@@ -2228,68 +2684,6 @@ async function write3DSQR(miiJson, outPath, fflRes = getFFLRes()) {
         });
         const qrBuffer = Buffer.from(await qrCodeImage.getRawData("png"))
 
-        var studioMii = new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09]);
-        studioMii[0x16] = miiJson.info.gender === "Male" ? 0 : 1;
-        studioMii[0x15] = lookupTables.favCols.indexOf(miiJson.info.favColor);
-        studioMii[0x1E] = miiJson.info.height;
-        studioMii[2] = miiJson.info.weight;
-        studioMii[0x13] = lookupTables.faces.values[miiJson.face.shape];
-        studioMii[0x11] = lookupTables.skinCols.indexOf(miiJson.face.col);
-        studioMii[0x14] = lookupTables.faceFeatures3DS.indexOf(miiJson.face.feature);
-        studioMii[0x12] = lookupTables.makeups3DS.indexOf(miiJson.face.makeup);
-        studioMii[0x1D] = lookupTables.hairs.values[miiJson.hair.style[0]][miiJson.hair.style[1]];
-        studioMii[0x1B] = lookupTables.hairCols.indexOf(miiJson.hair.col);
-        if (!studioMii[0x1B]) studioMii[0x1B] = 8;
-        studioMii[0x1C] = miiJson.hair.flipped ? 1 : 0;
-        studioMii[7] = lookupTables.eyes.values[miiJson.eyes.type[0]][miiJson.eyes.type[1]];
-        studioMii[4] = lookupTables.eyeCols.indexOf(miiJson.eyes.col) + 8;
-        studioMii[6] = miiJson.eyes.size;
-        studioMii[3] = miiJson.eyes.squash;
-        studioMii[5] = miiJson.eyes.rot;
-        studioMii[8] = miiJson.eyes.distApart;
-        studioMii[9] = miiJson.eyes.yPos;
-        studioMii[0xE] = lookupTables.eyebrows.values[miiJson.eyebrows.style[0]][miiJson.eyebrows.style[1]];
-        studioMii[0xB] = lookupTables.hairCols.indexOf(miiJson.eyebrows.col);
-        if (!studioMii[0xB]) studioMii[0xB] = 8;
-        studioMii[0xD] = miiJson.eyebrows.size;
-        studioMii[0xA] = miiJson.eyebrows.squash;
-        studioMii[0xC] = miiJson.eyebrows.rot;
-        studioMii[0xF] = miiJson.eyebrows.distApart;
-        studioMii[0x10] = miiJson.eyebrows.yPos + 3;
-        studioMii[0x2C] = lookupTables.noses.values[miiJson.nose.type[0]][miiJson.nose.type[1]];
-        studioMii[0x2B] = miiJson.nose.size;
-        studioMii[0x2D] = miiJson.nose.yPos;
-        studioMii[0x26] = lookupTables.mouths.values[miiJson.mouth.type[0]][miiJson.mouth.type[1]];
-        studioMii[0x24] = lookupTables.mouthCols3DS.indexOf(miiJson.mouth.col);
-        if (studioMii[0x24] < 4) {
-            studioMii[0x24] += 19;
-        } else {
-            studioMii[0x24] = 0;
-        }
-        studioMii[0x25] = miiJson.mouth.size;
-        studioMii[0x23] = miiJson.mouth.squash;
-        studioMii[0x27] = miiJson.mouth.yPos;
-        studioMii[0x29] = miiJson.facialHair.mustacheType;
-        studioMii[1] = miiJson.facialHair.beardType;
-        studioMii[0] = lookupTables.hairCols.indexOf(miiJson.facialHair.col);
-        if (!studioMii[0]) studioMii[0] = 8;
-        studioMii[0x28] = miiJson.facialHair.mustacheSize;
-        studioMii[0x2A] = miiJson.facialHair.mustacheYPos;
-        studioMii[0x19] = miiJson.glasses.type;
-        studioMii[0x17] = miiJson.glasses.col;
-        if (!studioMii[0x17]) {
-            studioMii[0x17] = 8;
-        } else if (studioMii[0x17] < 6) {
-            studioMii[0x17] += 13;
-        } else {
-            studioMii[0x17] = 0;
-        }
-        studioMii[0x18] = miiJson.glasses.size;
-        studioMii[0x1A] = miiJson.glasses.yPos;
-        studioMii[0x20] = miiJson.mole.on ? 1 : 0;
-        studioMii[0x1F] = miiJson.mole.size;
-        studioMii[0x21] = miiJson.mole.xPos;
-        studioMii[0x22] = miiJson.mole.yPos;
         let miiPNGBuf = null;
         let renderedWithStudio = fflRes === null || fflRes === undefined;
         if (renderedWithStudio) {
@@ -2332,7 +2726,7 @@ async function write3DSQR(miiJson, outPath, fflRes = getFFLRes()) {
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }, 424, 395);
 
-        if (miiJson.info.type === "Special") {
+        if (miiJson.general.type === "Special") {
             const crown_img = await Jimp.read(path.join(__dirname, 'crown.jpg'));
             crown_img.resize(40, 20);
             main_img.blit(crown_img, 225, 160);
