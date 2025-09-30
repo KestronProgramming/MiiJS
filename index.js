@@ -23,107 +23,6 @@ const FFLShaderMaterial = require("ffl.js/FFLShaderMaterial.js");
 // Typedefs for intellisence
 /** @typedef {import('./types').WiiMii} WiiMii */
 
-//Tools
-function Uint8Cat(){
-    var destLength = 0
-    for(var i = 0;i < arguments.length;i++){
-        destLength += arguments[i].length;
-    }
-    var dest = new Uint8Array(destLength);
-    var index = 0;
-    for(var i=0;i<arguments.length;i++){
-        dest.set(arguments[i],index);
-        index += arguments[i].length;
-    }
-    return dest;
-}
-async function downloadImage(url) {
-    return new Promise((resolve, reject) => {
-        httpsLib.get(url, (res) => {
-            if (res.statusCode === 200) {
-                const data = [];
-                res.on('data', chunk => data.push(chunk));
-                res.on('end', () => resolve(Buffer.concat(data)));
-                res.on('error', reject);
-            } else {
-                res.resume();
-                reject(new Error(`Request Failed With a Status Code: ${res.statusCode}`));
-            }
-        });
-    });
-}
-function byteToString(int){
-    var str = int.toString(16);
-    if(str.length < 2)str = '0' + str;
-    return str;
-}
-function getBinaryFromAddress(addr, bin){
-    let byte = bin.readUInt8(addr);
-    let binaryString = '';
-    for (let i = 7; i >= 0; i--) {
-        binaryString += ((byte >> i) & 1) ? '1' : '0';
-    }
-    return binaryString;
-}
-function getKeyByValue(object, value) {
-    for (var key in object) {
-      if (object[key] === value) {
-        return key;
-      }
-    }
-}
-
-//If FFLResHigh.dat is in the same directory as Node.js is calling the library from, use it by default
-let _fflRes; // undefined initially
-function getFFLRes() {
-    // If we've already tried loading, just return the result
-    if (_fflRes !== undefined) return _fflRes;
-    for (const path of [ "./FFLResHigh.dat", "./ffl/FFLResHigh.dat" ]) {
-        if (fs.existsSync(path)) {
-            // Convert Buffer to Uint8Array explicitly
-            const buffer = fs.readFileSync(path);
-            return _fflRes = new Uint8Array(buffer);
-        }
-    }
-    // If no file found, mark as null
-    return _fflRes = null;
-}
-
-//3DS QR Code (En|De)cryption
-var NONCE_OFFSET = 0xC;
-var NONCE_LENGTH = 8;
-var TAG_LENGTH = 0x10;
-var aes_key = new Uint8Array([0x59, 0xFC, 0x81, 0x7E, 0x64, 0x46, 0xEA, 0x61, 0x90, 0x34, 0x7B, 0x20, 0xE9, 0xBD, 0xCE, 0x52]);
-var pad = new Uint8Array([0,0,0,0]);
-function decodeAesCcm(data){
-  var nonce = Uint8Cat(data.subarray(0,NONCE_LENGTH),pad);
-  var ciphertext = data.subarray(NONCE_LENGTH,0x70);
-  var plaintext = asmCrypto.AES_CCM.decrypt(ciphertext,aes_key,nonce,undefined,TAG_LENGTH);
-  return Uint8Cat(plaintext.subarray(0,NONCE_OFFSET),data.subarray(0,NONCE_LENGTH),plaintext.subarray(NONCE_OFFSET,plaintext.length - 4));
-}
-function crcCalc(data){
-    var crc = 0;
-    for (var byteIndex = 0;byteIndex < data.length; byteIndex++){
-        for (var bitIndex = 7; bitIndex >= 0; bitIndex--){
-            crc = (((crc << 1) | ((data[byteIndex] >> bitIndex) & 0x1)) ^
-            (((crc & 0x8000) != 0) ? 0x1021 : 0)); 
-        }
-    }
-    for(var counter = 16; counter > 0; counter--){
-        crc = ((crc << 1) ^ (((crc & 0x8000) != 0) ? 0x1021 : 0));
-    }
-    return(crc & 0xFFFF);
-}
-function encodeAesCcm(data){
-    var nonce = Uint8Cat(data.subarray(NONCE_OFFSET,NONCE_OFFSET + NONCE_LENGTH),pad);
-    var crcSrc = Uint8Cat(data,new Uint8Array([0,0]));
-    var crc = crcCalc(crcSrc);
-    var cfsd = Uint8Cat(crcSrc,new Uint8Array([crc >>> 8,crc & 0xff]));
-    var plaintext = Uint8Cat(cfsd.subarray(0,NONCE_OFFSET),cfsd.subarray(NONCE_OFFSET + NONCE_LENGTH,cfsd.length),pad,pad);
-    var ciphertext = asmCrypto.AES_CCM.encrypt(plaintext,aes_key,nonce,undefined,TAG_LENGTH);
-    return Uint8Cat(cfsd.subarray(NONCE_OFFSET,NONCE_OFFSET + NONCE_LENGTH),ciphertext.subarray(0,ciphertext.length - 24),ciphertext.subarray(ciphertext.length - TAG_LENGTH,ciphertext.length))
-}
-
 //Miscellaneous Tables
 const lookupTables = {
     //Universals
@@ -765,7 +664,6 @@ const lookupTables = {
         ]
     }
 };
-
 var convTables={
     face3DSToWii:[0,1,2,2,3,1,4,5,4,6,7,6],
     features3DSToWii:["0","6",5,6,"6",4,7,7,8,10,"6",11],//If typeof===String, choose a makeup in that field's place - there is no suitable replacement. Read the discrepancies in the README for more information.
@@ -1245,6 +1143,126 @@ const kidNames={
         "Taylor"
     ]
 };
+
+//Tools
+function Uint8Cat(){
+    var destLength = 0
+    for(var i = 0;i < arguments.length;i++){
+        destLength += arguments[i].length;
+    }
+    var dest = new Uint8Array(destLength);
+    var index = 0;
+    for(var i=0;i<arguments.length;i++){
+        dest.set(arguments[i],index);
+        index += arguments[i].length;
+    }
+    return dest;
+}
+async function downloadImage(url) {
+    return new Promise((resolve, reject) => {
+        httpsLib.get(url, (res) => {
+            if (res.statusCode === 200) {
+                const data = [];
+                res.on('data', chunk => data.push(chunk));
+                res.on('end', () => resolve(Buffer.concat(data)));
+                res.on('error', reject);
+            } else {
+                res.resume();
+                reject(new Error(`Request Failed With a Status Code: ${res.statusCode}`));
+            }
+        });
+    });
+}
+function byteToString(int){
+    var str = int.toString(16);
+    if(str.length < 2)str = '0' + str;
+    return str;
+}
+function getBinaryFromAddress(addr, bin){
+    let byte = bin.readUInt8(addr);
+    let binaryString = '';
+    for (let i = 7; i >= 0; i--) {
+        binaryString += ((byte >> i) & 1) ? '1' : '0';
+    }
+    return binaryString;
+}
+function getKeyByValue(object, value) {
+    for (var key in object) {
+      if (object[key] === value) {
+        return key;
+      }
+    }
+}
+function lookupTable(table,value,paginated){
+  if(paginated){
+    for(var i=0;i<lookupTables[table].values.length;i++){
+      for(var j=0;j<lookupTables[table].values[i].length;j++){
+        if(lookupTables[table].values[i][j]===value){
+          return [i,j];
+        }
+      }
+    }
+  }
+  else{
+    for(var i=0;i<lookupTables[table].values.length;i++){
+      if(lookupTables[table].values[i]===value){
+        return i;
+      }
+    }
+  }
+  return undefined;
+}
+
+//If FFLResHigh.dat is in the same directory as Node.js is calling the library from, use it by default
+let _fflRes; // undefined initially
+function getFFLRes() {
+    // If we've already tried loading, just return the result
+    if (_fflRes !== undefined) return _fflRes;
+    for (const path of [ "./FFLResHigh.dat", "./ffl/FFLResHigh.dat" ]) {
+        if (fs.existsSync(path)) {
+            // Convert Buffer to Uint8Array explicitly
+            const buffer = fs.readFileSync(path);
+            return _fflRes = new Uint8Array(buffer);
+        }
+    }
+    // If no file found, mark as null
+    return _fflRes = null;
+}
+
+//3DS QR Code (En|De)cryption
+var NONCE_OFFSET = 0xC;
+var NONCE_LENGTH = 8;
+var TAG_LENGTH = 0x10;
+var aes_key = new Uint8Array([0x59, 0xFC, 0x81, 0x7E, 0x64, 0x46, 0xEA, 0x61, 0x90, 0x34, 0x7B, 0x20, 0xE9, 0xBD, 0xCE, 0x52]);
+var pad = new Uint8Array([0,0,0,0]);
+function decodeAesCcm(data){
+  var nonce = Uint8Cat(data.subarray(0,NONCE_LENGTH),pad);
+  var ciphertext = data.subarray(NONCE_LENGTH,0x70);
+  var plaintext = asmCrypto.AES_CCM.decrypt(ciphertext,aes_key,nonce,undefined,TAG_LENGTH);
+  return Uint8Cat(plaintext.subarray(0,NONCE_OFFSET),data.subarray(0,NONCE_LENGTH),plaintext.subarray(NONCE_OFFSET,plaintext.length - 4));
+}
+function crcCalc(data){
+    var crc = 0;
+    for (var byteIndex = 0;byteIndex < data.length; byteIndex++){
+        for (var bitIndex = 7; bitIndex >= 0; bitIndex--){
+            crc = (((crc << 1) | ((data[byteIndex] >> bitIndex) & 0x1)) ^
+            (((crc & 0x8000) != 0) ? 0x1021 : 0)); 
+        }
+    }
+    for(var counter = 16; counter > 0; counter--){
+        crc = ((crc << 1) ^ (((crc & 0x8000) != 0) ? 0x1021 : 0));
+    }
+    return(crc & 0xFFFF);
+}
+function encodeAesCcm(data){
+    var nonce = Uint8Cat(data.subarray(NONCE_OFFSET,NONCE_OFFSET + NONCE_LENGTH),pad);
+    var crcSrc = Uint8Cat(data,new Uint8Array([0,0]));
+    var crc = crcCalc(crcSrc);
+    var cfsd = Uint8Cat(crcSrc,new Uint8Array([crc >>> 8,crc & 0xff]));
+    var plaintext = Uint8Cat(cfsd.subarray(0,NONCE_OFFSET),cfsd.subarray(NONCE_OFFSET + NONCE_LENGTH,cfsd.length),pad,pad);
+    var ciphertext = asmCrypto.AES_CCM.encrypt(plaintext,aes_key,nonce,undefined,TAG_LENGTH);
+    return Uint8Cat(cfsd.subarray(NONCE_OFFSET,NONCE_OFFSET + NONCE_LENGTH),ciphertext.subarray(0,ciphertext.length - 24),ciphertext.subarray(ciphertext.length - TAG_LENGTH,ciphertext.length))
+}
 
 //Defaults
 const defaultInstrs={
@@ -2303,7 +2321,7 @@ async function readWiiBin(binOrPath) {
         cname+=data.slice(55+i*2, 56+i*2)+"";
     }
     thisMii.meta.creatorName=cname.replaceAll("\x00","");
-    thisMii.general.gender=get(0x00)[1];//0 for Male, 1 for Female
+    thisMii.general.gender=+get(0x00)[1];//0 for Male, 1 for Female
     thisMii.meta.miiId=parseInt(get(0x18),2).toString(16)+parseInt(get(0x19),2).toString(16)+parseInt(get(0x1A),2).toString(16)+parseInt(get(0x1B),2).toString(16);
     switch(thisMii.meta.miiId.slice(0,3)){
         case "010":
@@ -2418,11 +2436,130 @@ async function read3DSQR(binOrPath,returnDecryptedBin) {
         if(returnDecryptedBin){
             return data;
         }
-        const miiJson = miiBufferToJson(data, THREEDS_MII_SCHEMA, lookupTables, false);
-        miiJson.console = '3ds';
+        const miiJson = {
+            general:{},
+            perms:{},
+            meta:{},
+            face:{},
+            nose:{},
+            mouth:{},
+            mole:{},
+            hair:{},
+            eyebrows:{},
+            eyes:{},
+            glasses:{},
+            beard:{
+                mustache:{}
+            }
+        };
+        const get = address => getBinaryFromAddress(address, data);
+        var temp=get(0x18);
+        var temp2=get(0x19);
+        miiJson.general.birthday=parseInt(temp2.slice(6,8)+temp.slice(0,3),2);
+        miiJson.general.birthMonth=parseInt(temp.slice(3,7),2);
+        //Handle UTF-16 Names
+        var name = "";
+        for (var i = 0x1A; i < 0x2E; i += 2) {
+            let lo = data[i];
+            let hi = data[i + 1];
+            if (lo === 0x00 && hi === 0x00) {
+                break;
+            }
+            let codeUnit = (hi << 8) | lo;
+            name += String.fromCharCode(codeUnit);
+        }
+        miiJson.meta.name = name.replace(/\u0000/g, "");
+        var cname = "";
+        for (var i = 0x48; i < 0x5C; i += 2) {
+            let lo = data[i];
+            let hi = data[i + 1];
+            if (lo === 0x00 && hi === 0x00) {
+                break;
+            }
+            let codeUnit = (hi << 8) | lo;
+            cname += String.fromCharCode(codeUnit);
+        }
+        miiJson.meta.creatorName = cname.replace(/\u0000/g, "");
+        miiJson.general.height=parseInt(get(0x2E),2);
+        miiJson.general.weight=parseInt(get(0x2F),2);
+        miiJson.general.gender=+temp[7];
+        temp=get(0x30);
+        miiJson.perms.sharing=temp[7]==="1"?false:true;
+        miiJson.general.favoriteColor=parseInt(temp2.slice(2,6),2);
+        miiJson.perms.copying=get(0x01)[7]==="1"?true:false;
+        miiJson.hair.page=lookupTable("hairs",parseInt(get(0x32),2),true)[0];
+        miiJson.hair.type=lookupTable("hairs",parseInt(get(0x32),2),true)[1];
+        miiJson.face.type=lookupTable("faces",parseInt(temp.slice(3,7),2),false);
+        miiJson.face.color=parseInt(temp.slice(0,3),2);
+        temp=get(0x31);
+        miiJson.face.feature=parseInt(temp.slice(4,8),2);
+        miiJson.face.makeup=parseInt(temp.slice(0,4),2);
+        temp=get(0x34);
+        miiJson.eyes.page=lookupTable("eyes",parseInt(temp.slice(2,8),2),true)[0];
+        miiJson.eyes.type=lookupTable("eyes",parseInt(temp.slice(2,8),2),true)[1];
+        temp2=get(0x33);
+        miiJson.hair.color=parseInt(temp2.slice(5,8),2);
+        miiJson.hair.flipped=temp2[4]==="0"?false:true;
+        miiJson.eyes.color=parseInt(get(0x35)[7]+temp.slice(0,2),2);
+        temp=get(0x35);
+        miiJson.eyes.size=parseInt(temp.slice(3,7),2);
+        miiJson.eyes.squash=parseInt(temp.slice(0,3),2);
+        temp=get(0x36);
+        temp2=get(0x37);
+        miiJson.eyes.rotation=parseInt(temp.slice(3,8),2);
+        miiJson.eyes.distanceApart=parseInt(temp2[7]+temp.slice(0,3),2);
+        miiJson.eyes.yPosition=parseInt(temp2.slice(2,7),2);
+        temp=get(0x38);
+        miiJson.eyebrows.page=lookupTable("eyebrows",parseInt(temp.slice(3,8),2),true)[0];
+        miiJson.eyebrows.type=lookupTable("eyebrows",parseInt(temp.slice(3,8),2),true)[1];
+        miiJson.eyebrows.color=parseInt(temp.slice(0,3),2);
+        temp=get(0x39);
+        miiJson.eyebrows.size=parseInt(temp.slice(4,8),2);
+        miiJson.eyebrows.squash=parseInt(temp.slice(1,4),2);
+        temp=get(0x3A);
+        miiJson.eyebrows.rotation=parseInt(temp.slice(4,8),2);
+        temp2=get(0x3B);
+        miiJson.eyebrows.distanceApart=parseInt(temp2[7]+temp.slice(0,3),2);
+        miiJson.eyebrows.yPosition=parseInt(temp2.slice(2,7),2)-3;
+        temp=get(0x3C);
+        miiJson.nose.page=lookupTable("noses",parseInt(temp.slice(3,8),2),true)[0];
+        miiJson.nose.type=lookupTable("noses",parseInt(temp.slice(3,8),2),true)[1];
+        temp2=get(0x3D);
+        miiJson.nose.size=parseInt(temp2[7]+temp.slice(0,3),2);
+        miiJson.nose.yPosition=parseInt(temp2.slice(2,7),2);
+        temp=get(0x3E);
+        miiJson.mouth.page=lookupTable("mouths",parseInt(temp.slice(2,8),2),true)[0];
+        miiJson.mouth.type=lookupTable("mouths",parseInt(temp.slice(2,8),2),true)[1];
+        temp2=get(0x3F);
+        miiJson.mouth.color=parseInt(temp2[7]+temp.slice(0,2),2);
+        miiJson.mouth.size=parseInt(temp2.slice(3,7),2);
+        miiJson.mouth.squash=parseInt(temp2.slice(0,3),2);
+        temp=get(0x40);
+        miiJson.mouth.yPosition=parseInt(temp.slice(3,8),2);
+        miiJson.beard.mustache.type=parseInt(temp.slice(0,3),2);
+        temp=get(0x42);
+        miiJson.beard.type=parseInt(temp.slice(5,8),2);
+        miiJson.beard.color=parseInt(temp.slice(2,5),2);
+        temp2=get(0x43);
+        miiJson.beard.mustache.size=parseInt(temp2.slice(6,8)+temp.slice(0,2),2);
+        miiJson.beard.mustache.yPosition=parseInt(temp2.slice(1,6),2);
+        temp=get(0x44);
+        miiJson.glasses.type=parseInt(temp.slice(4,8),2);
+        miiJson.glasses.color=parseInt(temp.slice(1,4),2);
+        temp2=get(0x45);
+        miiJson.glasses.size=parseInt(temp2.slice(5,8)+temp[0],2);
+        miiJson.glasses.yPosition=parseInt(temp2.slice(0,5),2);
+        temp=get(0x46);
+        miiJson.mole.on=temp[7]==="0"?false:true;
+        miiJson.mole.size=parseInt(temp.slice(3,7),2);
+        temp2=get(0x47);
+        miiJson.mole.xPosition=parseInt(temp2.slice(6,8)+temp.slice(0,3),2);
+        miiJson.mole.yPosition=parseInt(temp2.slice(1,6),2);
+        miiJson.meta.type="Default";//qk, Make this actually retrieve MiiID, SystemID, and Mii type
+        miiJson.console="3DS";
         return miiJson;
     } else {
-        console.error('Failed to read QR code.');
+        console.error('Failed to read Mii.');
     }
 }
 async function renderMiiWithStudio(jsonIn){
@@ -2589,9 +2726,9 @@ async function writeWiiBin(jsonIn, outPath) {
     miiBin+=mii.face.color.toString(2).padStart(3,"0");
     miiBin+=mii.face.feature.toString(2).padStart(4,"0");
     miiBin+="000";
-    if(mii.perms.mingle&&mii.meta.type==="Special"){
+    if(mii.perms.mingle&&mii.meta.type.toLowerCase()==="special"){
         mii.perms.mingle=false;
-        console.error("A Special Mii cannot have Mingle on and still render on the Wii. Turned Mingle off in the output file.");
+        console.warn("A Special Mii cannot have Mingle on and still render on the Wii. Turned Mingle off in the output.");
     }
     miiBin+=mii.perms.mingle?"0":"1";
     miiBin+="0";
@@ -2664,89 +2801,217 @@ async function writeWiiBin(jsonIn, outPath) {
     }
 }
 async function write3DSQR(miiJson, outPath, fflRes = getFFLRes()) {
+    //Convert the Mii if it isn't in 3DS format
     if (!["3ds", "wii u"].includes(miiJson.console?.toLowerCase())) {
         miiJson = convertMii(miiJson);
     }
-    return new Promise(async (resolve, reject) => {
-        const miiBinary = jsonToMiiBuffer(miiJson, THREEDS_MII_SCHEMA, lookupTables, 74);
-        var encryptedData = Buffer.from(encodeAesCcm(new Uint8Array(miiBinary)));
-
-        const options = {
-            width: 300,
-            height: 300,
-            data: encryptedData.toString("latin1"),
-            image: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==", // 1x1 gif
-            dotsOptions: {
-                color: "#000000",
-                type: "square"
-            },
-            backgroundOptions: {
-                color: "#ffffff",
-            },
-            imageOptions: {
-                crossOrigin: "anonymous",
-                imageSize: 0.4 // Changes how large center area is
-            }
-        }
-        const qrCodeImage = new QRCodeStyling({
-            jsdom: JSDOM,
-            nodeCanvas,
-            ...options
-        });
-        const qrBuffer = Buffer.from(await qrCodeImage.getRawData("png"))
-
-        let miiPNGBuf = null;
-        let renderedWithStudio = fflRes === null || fflRes === undefined;
-        if (renderedWithStudio) {
-            miiPNGBuf = await renderMiiWithStudio(miiJson);
+    
+    //Make the binary
+    var mii=miiJson;
+    var miiBin = "00000011";
+    //If Special Miis are being used improperly, fix it and warn the user
+    if(mii.meta.type.toLowerCase()==="special"&&(mii.console.toLowerCase()==="wii u"||mii.console.toLowerCase()==="wiiu")){
+        mii.meta.type="Default";
+        console.warn("Wii Us do not work with Special Miis. Reverted to Default Mii.");
+    }
+    if(mii.perms.sharing&&mii.meta.type==="Special"){
+        mii.perms.sharing=false;
+        console.warn("Cannot have Sharing enabled for Special Miis. Disabled Sharing in the output.");
+    }
+    miiBin+="0000000";
+    miiBin+=mii.perms.copying?"1":"0";
+    miiBin+="00000000";
+    miiBin+="00110000";
+    miiBin+="1000101011010010000001101000011100011000110001100100011001100110010101100111111110111100000001110101110001000101011101100000001110100100010000000000000000000000".slice(0,8*8);
+    miiBin+=mii.meta.type==="Special"?"0":"1";
+    miiBin+="0000000";
+    for(var i=0;i<3;i++){
+        miiBin+=Math.floor(Math.random()*255).toString(2).padStart(8,"0");
+    }
+    miiBin+="0000000001000101011101100000001110100100010000000000000000000000";
+    miiBin+=mii.general.birthday.toString(2).padStart(5,"0").slice(2,5);
+    miiBin+=mii.general.birthMonth.toString(2).padStart(4,"0");
+    miiBin+=mii.general.gender;
+    miiBin+="00";
+    miiBin+=mii.general.favoriteColor.toString(2).padStart(4,"0");
+    miiBin+=mii.general.birthday.toString(2).padStart(5,"0").slice(0,2);
+    for (var i = 0; i < 10; i++) {
+        if (i < mii.meta.name.length) {
+            let code = mii.meta.name.charCodeAt(i);
+            miiBin += (code & 0xFF).toString(2).padStart(8, "0");
+            miiBin += ((code >> 8) & 0xFF).toString(2).padStart(8, "0");
         }
         else {
-            miiPNGBuf = await renderMii(miiJson, fflRes);
+            miiBin += "0000000000000000";
         }
-        const main_img = await Jimp.read(qrBuffer);
-        main_img.resize(424, 424, Jimp.RESIZE_NEAREST_NEIGHBOR); // Don't anti-alias the QR code
-
-        let miiSize, miiZoomFactor, miiYOffset;
-        if (renderedWithStudio) {
-            miiSize = 100;
-            miiZoomFactor = 1;
-            miiYOffset = -15;
-
-        } else {
-            miiSize = 100;
-            miiZoomFactor = 1.25;
-            miiYOffset = -5;
+    }
+    miiBin+=mii.general.height.toString(2).padStart(8,"0");
+    miiBin+=mii.general.weight.toString(2).padStart(8,"0");
+    miiBin+=mii.face.color.toString(2).padStart(3,"0");
+    miiBin+=lookupTables.faces.values[mii.face.type].toString(2).padStart(4,"0");
+    miiBin+=mii.perms.sharing?"0":"1";
+    miiBin+=mii.face.makeup.toString(2).padStart(4,"0");
+    miiBin+=mii.face.feature.toString(2).padStart(4,"0");
+    miiBin+=lookupTables.hairs.values[mii.hair.page][mii.hair.type].toString(2).padStart(8,"0");
+    miiBin+="0000";
+    miiBin+=mii.hair.flipped?"1":"0";
+    miiBin+=mii.hair.color.toString(2).padStart(3,"0");
+    miiBin+=mii.eyes.color.toString(2).padStart(3,"0").slice(1,3);
+    miiBin+=lookupTables.eyes.values[mii.eyes.page][mii.eyes.type].toString(2).padStart(6,"0");
+    miiBin+=mii.eyes.squash.toString(2).padStart(3,"0");
+    miiBin+=mii.eyes.size.toString(2).padStart(4,"0");
+    miiBin+=mii.eyes.color.toString(2).padStart(3,"0")[0];
+    miiBin+=mii.eyes.distanceApart.toString(2).padStart(4,"0").slice(1,4);
+    miiBin+=mii.eyes.rotation.toString(2).padStart(5,"0");
+    miiBin+="00";
+    miiBin+=mii.eyes.yPosition.toString(2).padStart(5,"0");
+    miiBin+=mii.eyes.distanceApart.toString(2).padStart(4,"0")[0];
+    miiBin+=mii.eyebrows.color.toString(2).padStart(3,"0");
+    miiBin+=lookupTables.eyebrows.values[mii.eyebrows.page][mii.eyebrows.type].toString(2).padStart(5,"0");
+    miiBin+="0";
+    miiBin+=mii.eyebrows.squash.toString(2).padStart(3,"0");
+    miiBin+=mii.eyebrows.size.toString(2).padStart(4,"0");
+    miiBin+=mii.eyebrows.distanceApart.toString(2).padStart(4,"0").slice(1,4);
+    miiBin+="0";
+    miiBin+=mii.eyebrows.rotation.toString(2).padStart(4,"0");
+    miiBin+="00";
+    miiBin+=(mii.eyebrows.yPosition+3).toString(2).padStart(5,"0");
+    miiBin+=mii.eyebrows.distanceApart.toString(2).padStart(4,"0")[0];
+    miiBin+=mii.nose.size.toString(2).padStart(4,"0").slice(1,4);
+    miiBin+=lookupTables.noses.values[mii.nose.page][mii.nose.type].toString(2).padStart(5,"0");
+    miiBin+="00";
+    miiBin+=mii.nose.yPosition.toString(2).padStart(5,"0");
+    miiBin+=mii.nose.size.toString(2).padStart(4,"0")[0];
+    miiBin+=mii.mouth.color.toString(2).padStart(3,"0").slice(1,3);
+    miiBin+=lookupTables.mouths.values[mii.mouth.page][mii.mouth.type].toString(2).padStart(6,"0");
+    miiBin+=mii.mouth.squash.toString(2).padStart(3,"0");
+    miiBin+=mii.mouth.size.toString(2).padStart(4,"0");
+    miiBin+=mii.mouth.color.toString(2).padStart(3,"0")[0];
+    miiBin+=mii.beard.mustache.type.toString(2).padStart(3,"0");
+    miiBin+=mii.mouth.yPosition.toString(2).padStart(5,"0");
+    miiBin+="00000000";
+    miiBin+=mii.beard.mustache.size.toString(2).padStart(4,"0").slice(2,4);
+    miiBin+=mii.beard.color.toString(2).padStart(3,"0");
+    miiBin+=mii.beard.type.toString(2).padStart(3,"0");
+    miiBin+="0";
+    miiBin+=mii.beard.mustache.yPosition.toString(2).padStart(5,"0");
+    miiBin+=mii.beard.mustache.size.toString(2).padStart(4,"0").slice(0,2);
+    miiBin+=mii.glasses.size.toString(2).padStart(4,"0")[3];
+    miiBin+=mii.glasses.color.toString(2).padStart(3,"0");
+    miiBin+=mii.glasses.type.toString(2).padStart(4,"0");
+    miiBin+="0";
+    miiBin+=mii.glasses.yPosition.toString(2).padStart(4,"0");
+    miiBin+=mii.glasses.size.toString(2).padStart(4,"0").slice(0,3);
+    miiBin+=mii.mole.xPosition.toString(2).padStart(5,"0").slice(2,5);
+    miiBin+=mii.mole.size.toString(2).padStart(4,"0");
+    miiBin+=mii.mole.on?"1":"0";
+    miiBin+="0";
+    miiBin+=mii.mole.yPosition.toString(2).padStart(5,"0");
+    miiBin+=mii.mole.xPosition.toString(2).padStart(5,"0").slice(0,2);
+    for (var i = 0; i < 10; i++) {
+        if (i < mii.meta.creatorName.length) {
+            let code = mii.meta.creatorName.charCodeAt(i);
+            miiBin += (code & 0xFF).toString(2).padStart(8, "0");
+            miiBin += ((code >> 8) & 0xFF).toString(2).padStart(8, "0");
         }
-        const mii_img = await Jimp.read(miiPNGBuf);
-        mii_img.resize(miiSize * miiZoomFactor, miiSize * miiZoomFactor, Jimp.RESIZE_BICUBIC);
-        mii_img.crop(
-            (miiSize * miiZoomFactor - 100) / 2,
-            (miiSize * miiZoomFactor - 100) / 2,
-            miiSize,
-            miiSize
-        );
-
-        const canvas = new Jimp(mii_img.bitmap.width, mii_img.bitmap.height, 0xFFFFFFFF);
-        canvas.composite(mii_img, 0, miiYOffset);
-        main_img.blit(canvas, 212 - 100 / 2, 212 - 100 / 2);
-        const font = await Jimp.loadFont(Jimp.FONT_SANS_16_BLACK)
-
-        main_img.print(font, 0, 55, {
-            text: miiJson.name,
-            alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-            alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
-        }, 424, 395);
-
-        if (miiJson.general.type === "Special") {
-            const crown_img = await Jimp.read(path.join(__dirname, 'crown.jpg'));
-            crown_img.resize(40, 20);
-            main_img.blit(crown_img, 225, 160);
+        else {
+            miiBin += "0000000000000000";
         }
+    }
+    //Writing based on the binary
+    var toWrite=miiBin.match(/.{1,8}/g);
+    var buffers=[];
+    for(var i=0;i<toWrite.length;i++){
+        buffers.push(parseInt(toWrite[i],2));
+    }
+    const buffer = Buffer.from(buffers);
+    var encryptedData = Buffer.from(encodeAesCcm(new Uint8Array(buffer)));
 
-        main_img.write(outPath, (err, img) =>
-            resolve(img)
-        );
-    })
+    //Prepare a QR code
+    const options = {
+        width: 300,
+        height: 300,
+        data: encryptedData.toString("latin1"),
+        image: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==", // 1x1 gif
+        dotsOptions: {
+            color: "#000000",
+            type: "square"
+        },
+        backgroundOptions: {
+            color: "#ffffff",
+        },
+        imageOptions: {
+            crossOrigin: "anonymous",
+            imageSize: 0.4 // Changes how large center area is
+        },
+        qrOptions:{
+            errorCorrectionLevel:'H'
+        }
+    }
+    const qrCodeImage = new QRCodeStyling({
+        jsdom: JSDOM,
+        nodeCanvas,
+        ...options
+    });
+    const qrBuffer = Buffer.from(await qrCodeImage.getRawData("png"))
+
+    let miiPNGBuf = null;
+    let renderedWithStudio = fflRes === null || fflRes === undefined;
+    if (renderedWithStudio) {
+        miiPNGBuf = await renderMiiWithStudio(miiJson);
+    }
+    else {
+        miiPNGBuf = await renderMii(miiJson, fflRes);
+    }
+    const main_img = await Jimp.read(qrBuffer);
+    main_img.resize(424, 424, Jimp.RESIZE_NEAREST_NEIGHBOR); // Don't anti-alias the QR code
+
+    let miiSize, miiZoomFactor, miiYOffset;
+    if (renderedWithStudio) {
+        miiSize = 100;
+        miiZoomFactor = 1;
+        miiYOffset = -15;
+
+    } else {
+        miiSize = 100;
+        miiZoomFactor = 1.25;
+        miiYOffset = -5;
+    }
+    const mii_img = await Jimp.read(miiPNGBuf);
+    mii_img.resize(miiSize * miiZoomFactor, miiSize * miiZoomFactor, Jimp.RESIZE_BICUBIC);
+    mii_img.crop(
+        (miiSize * miiZoomFactor - 100) / 2,
+        (miiSize * miiZoomFactor - 100) / 2,
+        miiSize,
+        miiSize
+    );
+
+    const canvas = new Jimp(mii_img.bitmap.width, mii_img.bitmap.height, 0xFFFFFFFF);
+    canvas.composite(mii_img, 0, miiYOffset);
+    main_img.blit(canvas, 212 - 100 / 2, 212 - 100 / 2);
+    const font = await Jimp.loadFont(Jimp.FONT_SANS_16_BLACK)
+
+    main_img.print(font, 0, 55, {
+        text: miiJson.name,
+        alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+        alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
+    }, 424, 395);
+
+    if (miiJson.meta.type === "Special") {
+        const crown_img = await Jimp.read(path.join(__dirname, 'crown.jpg'));
+        crown_img.resize(40, 20);
+        main_img.blit(crown_img, 225, 160);
+    }
+
+    // Get the buffer
+    const imageBuffer = await main_img.getBufferAsync(Jimp.MIME_PNG);
+    
+    // Optionally write to file if outPath is provided
+    if (outPath) {
+        await main_img.writeAsync(outPath);
+    }
+    
+    return imageBuffer;
 }
 function make3DSChild(dad,mom,options={}){
     if(!["3ds","wii u"].includes(dad.console?.toLowerCase())){
