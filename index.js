@@ -2305,6 +2305,17 @@ async function readWiiBin(binOrPath) {
     thisMii.meta.creatorName=cname.replaceAll("\x00","");
     thisMii.general.gender=get(0x00)[1];//0 for Male, 1 for Female
     thisMii.meta.miiId=parseInt(get(0x18),2).toString(16)+parseInt(get(0x19),2).toString(16)+parseInt(get(0x1A),2).toString(16)+parseInt(get(0x1B),2).toString(16);
+    switch(thisMii.meta.miiId.slice(0,3)){
+        case "010":
+            thisMii.meta.type="Special";
+        break;
+        case "110":
+            thisMii.meta.type="Foreign";
+        break;
+        default:
+            thisMii.meta.type="Default";
+        break;
+    }
     thisMii.meta.systemId=parseInt(get(0x1C),2).toString(16)+parseInt(get(0x1D),2).toString(16)+parseInt(get(0x1E),2).toString(16)+parseInt(get(0x1F),2).toString(16);
     var temp=get(0x20);
     thisMii.face.type=parseInt(temp.slice(0,3),2);//0-7
