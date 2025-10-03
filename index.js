@@ -5,6 +5,7 @@ const { createCanvas, loadImage, ImageData } = nodeCanvas;
 const jsQR = require('jsqr');
 const Jimp = require('jimp');
 const THREE = require('three');
+var GLTFLoader=null;
 const QRCodeStyling = require("qr-code-styling");
 const { JSDOM } = require("jsdom");
 const httpsLib = require('https');
@@ -2263,7 +2264,7 @@ function convertMiiToStudio(jsonIn) {
     studioMii[0x23] = mii.mouth.squash;
     studioMii[0x27] = mii.mouth.yPosition;
     studioMii[0x29] = mii.beard.mustache.type;
-    studioMii[1] = mii.beard.beardType;
+    studioMii[1] = mii.beard.type;
     studioMii[0] = mii.beard.color;
     if (!studioMii[0]) studioMii[0] = 8;
     studioMii[0x28] = mii.beard.mustache.size;
@@ -2569,7 +2570,7 @@ async function renderMiiWithStudio(jsonIn){
     var studioMii=convertMiiToStudio(jsonIn);
     return await downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + studioMii + "&width=270&type=face");
 }
-async function createFFLMiiIcon(data, width, height, fflRes) {
+async function createFFLMiiIcon(data, width, height, useBody, shirtColor, fflRes) {
     /**
      * Creates a Mii face render using FFL.js/Three.js/gl-headless.
      * @example
@@ -2609,11 +2610,18 @@ async function createFFLMiiIcon(data, width, height, fflRes) {
     setIsWebGL1State(!renderer.capabilities.isWebGL2); // Tell FFL.js we are WebGL1
 
     const scene = new THREE.Scene();
-    // scene.background = null; // Transparent background.
-    scene.background = new THREE.Color('white');
-    // (You DO NOT need to add any lights to the scene,
-    // unless you are using a Three.js built-in material.
-    // If you are, look at demo-basic.js "addLightsToScene".)
+    scene.background = null; // Transparent background.
+
+    if(useBody){
+        // After: const scene = new THREE.Scene(); scene.background = null;
+        const ambient = new THREE.AmbientLight(0xffffff, 0.15);
+        scene.add(ambient);
+
+        const rim = new THREE.DirectionalLight(0xffffff, 3);
+        rim.position.set(0.5, -7, -1.0);
+        scene.add(rim);
+
+    }
 
     let ffl, currentCharModel;
 
@@ -2629,10 +2637,60 @@ async function createFFLMiiIcon(data, width, height, fflRes) {
         // Convert Uint8Array to Buffer for struct-fu compatibility
         const studioBuffer = Buffer.from(studioRaw);
         
-        currentCharModel = createCharModel(studioBuffer, null,
-        FFLShaderMaterial, ffl.module);
+        currentCharModel = createCharModel(studioBuffer, null, FFLShaderMaterial, ffl.module);
         initCharModelTextures(currentCharModel, renderer); // Initialize fully
         scene.add(currentCharModel.meshes); // Add to scene
+
+        //Add body
+       if (useBody) {
+            if (typeof GLTFLoader === 'undefined' || !GLTFLoader) {
+                const mod = await import('three/examples/jsm/loaders/GLTFLoader.js');
+                GLTFLoader = mod.GLTFLoader;
+            }
+            //Read GLB from disk and parse (avoids URL/fetch issues)
+            const absPath = path.resolve(__dirname, './mii-body.glb');
+            const buf = fs.readFileSync(absPath);
+            const arrayBuffer = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+            const loader = new GLTFLoader();
+            const gltf = await new Promise((resolve, reject) => {
+                loader.parse(
+                    arrayBuffer,
+                    path.dirname(absPath) + path.sep,
+                    resolve,
+                    reject
+                );
+            });
+
+            const body = gltf.scene;
+
+            body.position.y-=110;
+
+            //Recolor
+            body.userData.isMiiBody = true;
+            body.traverse(o => {
+                if (o.isMesh) {
+                    if (!o.geometry.attributes.normal) {
+                     o.geometry.computeVertexNormals();
+                    }
+                    const isShirt = (o.name === 'mesh_1_');
+                    o.material?.dispose?.();
+                    o.material = new THREE.MeshLambertMaterial({
+                        //["Red", "Orange", "Yellow", "Lime", "Green", "Blue", "Cyan", "Pink", "Purple", "Brown", "White", "Black"]
+                        color: isShirt ? [0xFF2400,0xF08000,0xFFD700,0xAAFF00,0x008000,0x0000FF,0x00D7FF,0xFF69B4,0x7F00FF,0x6F4E37,0xFFFFFF,0x303030][shirtColor] : 0x808080,
+                        emissive: isShirt ? 0x330000 : 0x222222,
+                        emissiveIntensity: 0.0
+                    });
+                    o.material.side = THREE.DoubleSide;
+                    o.material.needsUpdate = true;
+                }
+            });
+
+
+
+            // (6) Add to scene
+            scene.add(body);
+        }
+
 
         // Use the camera for an icon pose.
         const camera = getCameraForViewType(ViewType.MakeIcon);
@@ -2641,10 +2699,15 @@ async function createFFLMiiIcon(data, width, height, fflRes) {
         camera.projectionMatrix.elements[5] *= -1; // Flip the camera Y axis.
         // When flipping the camera, the triangles are in the wrong direction.
         scene.traverse(mesh => {
-          if (mesh.isMesh && mesh.material.side === THREE.FrontSide)
-            // Fix triangle winding by changing the culling (side).
-            mesh.material.side = THREE.BackSide;
+            if (
+                mesh.isMesh &&
+                mesh.material.side === THREE.FrontSide &&
+                !mesh.userData.isMiiBody
+            ) {
+                mesh.material.side = THREE.BackSide;
+            }
         });
+
 
         // Render the scene, and read the pixels into a buffer.
         renderer.render(scene, camera);
@@ -2682,7 +2745,7 @@ async function renderMii(jsonIn, fflRes=getFFLRes()){
     const studioMii = convertMiiToStudio(jsonIn);
     const width = height = 600;
 
-    return createFFLMiiIcon(studioMii, width, height, fflRes);
+    return createFFLMiiIcon(studioMii, width, height, true, jsonIn.general.favoriteColor, fflRes);
 }
 async function writeWiiBin(jsonIn, outPath) {
     if (jsonIn.console?.toLowerCase() !== "wii") {
@@ -2992,7 +3055,7 @@ async function write3DSQR(miiJson, outPath, fflRes = getFFLRes()) {
     const font = await Jimp.loadFont(Jimp.FONT_SANS_16_BLACK)
 
     main_img.print(font, 0, 55, {
-        text: miiJson.name,
+        text: miiJson.meta.name,
         alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
         alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
     }, 424, 395);
