@@ -2179,11 +2179,11 @@ function convertMii(jsonIn,typeTo){
         }
         miiTo.nose.type=convTables.nose3DSToWii[mii.nose.page][mii.nose.type];
         miiTo.mouth.type=convTables.mouth3DSToWii[mii.mouth.page][mii.mouth.type];
-        miiTo.mouth.color=mii.mouth.col>2?0:mii.mouth.col;
+        miiTo.mouth.color=mii.mouth.color>2?0:mii.mouth.color;
         miiTo.hair.type=convTables.hair3DSToWii[mii.hair.page][mii.hair.type];
         miiTo.eyebrows.type=convTables.eyebrows3DSToWii[mii.eyebrows.page][mii.eyebrows.type];
         miiTo.eyes.type=convTables.eyes3DSToWii[mii.eyes.page][mii.eyes.type];
-        miiTo.glasses.col=mii.glasses.col;
+        miiTo.glasses.color=mii.glasses.color;
         if(miiTo.beard.mustache.type===4){
             miiTo.beard.mustache.type=2;
         }
@@ -2211,7 +2211,7 @@ function convertMii(jsonIn,typeTo){
         }
         miiTo.eyes.squash=3;
         miiTo.eyebrows.squash=3;
-        miiTo.mouth.col=mouthCols3DS[mii.mouth.col];//qk
+        miiTo.mouth.color=mii.mouth.color;
         miiTo.mouth.squash=3;
         miiTo.console="3ds";
     }
@@ -3054,7 +3054,7 @@ async function write3DSQR(miiJson, outPath, fflRes = getFFLRes()) {
     main_img.blit(canvas, 212 - 100 / 2, 212 - 100 / 2);
     const font = await Jimp.loadFont(Jimp.FONT_SANS_16_BLACK)
 
-    main_img.print(font, 0, 55, {
+    main_img.print(font, 0, 70, {
         text: miiJson.meta.name,
         alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
         alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
