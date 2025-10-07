@@ -3077,61 +3077,64 @@ async function write3DSQR(miiJson, outPath, fflRes = getFFLRes()) {
     return imageBuffer;
 }
 function make3DSChild(dad,mom,options={}){
-    if(!["3ds","wii u"].includes(dad.console?.toLowerCase())){
+    if(!["3ds","wii u"].includes(dad.meta.console?.toLowerCase())){
         dad=convertMii(dad,"wii");
     }
-    if(!["3ds","wii u"].includes(mom.console?.toLowerCase())){
+    if(!["3ds","wii u"].includes(mom.meta.console?.toLowerCase())){
         mom=convertMii(dad,"wii");
     }
-    var g=options.gender||Math.floor(Math.random()*2)===1?"Male":"Female";
+    var g=options.gender||Math.floor(Math.random()*2);
     var child={
-        "info":{
+        "general":{
             "birthMonth":new Date().getMonth()+1,
             "birthday":new Date().getDay(),
             "height":64,
             "weight":64,
-            "creatorName":"",
             "gender":g,
-            "name":options.name||kidNames[g][Math.floor(Math.random()*kidNames[g].length)],
             "favColor":options.favColor||favCols[Math.floor(Math.random()*favCols.length)]
+        },
+        "meta":{
+            "name":options.name||kidNames[g][Math.floor(Math.random()*kidNames[g].length)],
+            "creatorName":"",
         },
         "perms":{
             "sharing":true,
             "copying":true
         },
         "hair":{
-            "style":[8,3],//Hardcoded
-            "col":Math.floor(Math.random()*2)===1?dad.hair.col:mom.hair.col,
+            "page":8,//Hardcoded, needs to be generated
+            "type":3,// ^
+            "color":Math.floor(Math.random()*2)===1?dad.hair.color:mom.hair.color,
             "flipped":Math.floor(Math.random()*2)===0?true:false
         },
         "face":{
             "shape":Math.floor(Math.random()*2)===1?dad.face.shape:mom.face.shape,
             "feature":Math.floor(Math.random()*2)===1?dad.face.feature:mom.face.feature,
-            "makeup":g==="Male"?"None":Math.floor(Math.random()*2)===1?dad.face.makeup:mom.face.makeup
+            "makeup":g===0?0:Math.floor(Math.random()*2)===1?dad.face.makeup:mom.face.makeup
         },
         "eyes":Math.floor(Math.random()*2)===1?dad.eyes:mom.eyes,
         "eyebrows":Math.floor(Math.random()*2)===1?dad.eyebrows:mom.eyebrows,
         "nose":Math.floor(Math.random()*2)===1?dad.nose:mom.nose,
         "mouth":Math.floor(Math.random()*2)===1?dad.mouth:mom.mouth,
-        "facialHair":g==="Female"?{
-            "mustacheType": 0,
-            "beardType": 0,
-            "col": "Black",
-            "mustacheSize": 4,
-            "mustacheYPos": 10
-        }:Math.floor(Math.random()*2)===0?dad.facialHair:mom.facialHair,
+        "beard":{//Beards can never be generated for children allegedly, confirm before finishing
+            "mustache":{
+                "type":0,
+                "mustacheSize": 4,
+                "mustacheYPos": 10
+            },
+            "type": 0,
+            "color": 0
+        },
         "glasses":Math.floor(Math.random()*2)===1?dad.glasses:mom.glasses,
-        "mole":Math.floor(Math.random()*2)===1?dad.mole:mom.mole,
-        "creatorName":""
+        "mole":Math.floor(Math.random()*2)===1?dad.mole:mom.mole
     };
-    child.eyebrows.col=child.hair.col;
-    var c=[skinCols.indexOf(mom.face.col),skinCols.indexOf(dad.face.col)];
+    child.eyebrows.color=child.hair.color;
+    var c=[mom.face.color,dad.face.color];
     if(c[0]>c[1]){
         c[1]=c[0];
-        c[0]=skinCols.indexOf(dad.face.col);
+        c[0]=dad.face.color;
     }
-    child.face.col=skinCols[c[0]+Math.round((c[1]-c[0])/2)];
-    child.name=child.info.name;
+    child.face.color=c[0]+Math.round((c[1]-c[0])/2);
     child.type="3DS";
     return child;
 }

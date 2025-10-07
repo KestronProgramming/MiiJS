@@ -1,6 +1,6 @@
 {
   "name": "miijs",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Work with Mii characters in every possible way needed for your project.",
   "main": "index.js",
   "scripts": {
