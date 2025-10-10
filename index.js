@@ -2288,9 +2288,13 @@ function convertMiiToStudio(jsonIn) {
 }
 async function readWiiBin(binOrPath) {
     let data;
-    if (/[^01]/ig.test(binOrPath)) {
+    if(Buffer.isBuffer(binOrPath)){
+        data=binOrPath;
+    }
+    else if (/[^01]/ig.test(binOrPath)) {
         data = await fs.promises.readFile(binOrPath);
-    } else {
+    }
+    else{
         data = Buffer.from(binOrPath);
     }
     var thisMii={
@@ -3257,6 +3261,100 @@ function generateInstructions(mii,full){
     }
 }
 
+function miiHeightToFeetInches(value) {
+    const minInches = 36;  // 3'0"
+    const midInches = 69;  // 5'9"
+    const maxInches = 84;  // 7'0"
+    const midPoint = 64;
+
+    let totalInches;
+    if (value <= midPoint) {
+        // Lower half: 0–64 maps to 36–69
+        totalInches = minInches + (value / midPoint) * (midInches - minInches);
+    }
+    else {
+        // Upper half: 64–127 maps to 69–84
+        totalInches = midInches + ((value - midPoint) / (127 - midPoint)) * (maxInches - midInches);
+    }
+
+    const feet = Math.floor(totalInches / 12);
+    const inches = Math.round(totalInches % 12);
+    return { feet, inches, totalInches };
+}
+function inchesToMiiHeight(totalInches) {
+    const minInches = 36;
+    const midInches = 69;
+    const maxInches = 84;
+    const midPoint = 64;
+
+    let value;
+    if (totalInches <= midInches) {
+        // Below or equal to midpoint
+        value = ((totalInches - minInches) / (midInches - minInches)) * midPoint;
+    } else {
+        // Above midpoint
+        value = midPoint + ((totalInches - midInches) / (maxInches - midInches)) * (127 - midPoint);
+    }
+
+    return Math.round(Math.max(0, Math.min(value, 127)));
+}
+// ---- Tunable anchors (BMI breakpoints) ----
+const BMI_MIN   = 16;   // maps to Mii weight 0
+const BMI_MID   = 23;   // maps to Mii weight 64 (average look)
+const BMI_MAX   = 40;   // maps to Mii weight 127
+
+// Convenience: clamp helper
+const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+
+/**
+ * Convert real-world height & weight to Mii weight (0–127) using BMI.
+ * @param {number} heightInches - Total height in inches
+ * @param {number} weightLbs    - Weight in pounds
+ * @returns {number}            - Mii weight index (0–127)
+ */
+function heightWeightToMiiWeight(heightInches, weightLbs) {
+  if (!heightInches || heightInches <= 0) throw new Error("heightInches must be > 0");
+  const bmi = (703 * weightLbs) / (heightInches * heightInches);
+
+  let v;
+  if (bmi <= BMI_MID) {
+    // Map BMI_MIN..BMI_MID  ->  0..64
+    const t = (clamp(bmi, BMI_MIN, BMI_MID) - BMI_MIN) / (BMI_MID - BMI_MIN);
+    v = 0 + t * 64;
+  } else {
+    // Map BMI_MID..BMI_MAX  ->  64..127
+    const t = (clamp(bmi, BMI_MID, BMI_MAX) - BMI_MID) / (BMI_MAX - BMI_MID);
+    v = 64 + t * (127 - 64);
+  }
+  return Math.round(clamp(v, 0, 127));
+}
+
+/**
+ * Convert Mii weight (0–127) back to a realistic real-world weight (lbs)
+ * for a given height, by inverting the BMI mapping above.
+ * @param {number} heightInches - Total height in inches
+ * @param {number} miiWeight    - 0..127
+ * @returns {{ pounds:number, bmi:number }}
+ */
+function miiWeightToRealWeight(heightInches, miiWeight) {
+  if (!heightInches || heightInches <= 0) heightInches=0;
+  const v = clamp(miiWeight, 0, 127);
+
+  let bmi;
+  if (v <= 64) {
+    // Invert 0..64 -> BMI_MIN..BMI_MID
+    const t = v / 64;
+    bmi = BMI_MIN + t * (BMI_MID - BMI_MIN);
+  } else {
+    // Invert 64..127 -> BMI_MID..BMI_MAX
+    const t = (v - 64) / (127 - 64);
+    bmi = BMI_MID + t * (BMI_MAX - BMI_MID);
+  }
+
+  const pounds = (bmi * heightInches * heightInches) / 703;
+  return { pounds, bmi };
+}
+
 
 
 module.exports = {
@@ -3278,5 +3376,10 @@ module.exports = {
 
     //make3DSChild, //WIP
     
-    generateInstructions
+    generateInstructions,
+
+    miiHeightToFeetInches,
+    inchesToMiiHeight,
+    heightWeightToMiiWeight,
+    miiWeightToRealWeight
 }
