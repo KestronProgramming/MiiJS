@@ -1,13 +1,18 @@
 const fs = require('fs');
 const path = require('path');
 
-const fflPath = path.join(__dirname, './node_modules/ffl.js/ffl.js');
-
-console.log('Patching ffl.js to have CJS Exports...');
-
-if (!fs.existsSync(fflPath)) {
-    console.error('ffl.js not found at', fflPath);
-    process.exit(1);
+var fflPath;
+const fflPaths = [path.join(__dirname, './node_modules/ffl.js/ffl.js'),path.join(__dirname, '../node_modules/ffl.js/ffl.js'),path.join(__dirname, '../../node_modules/ffl.js/ffl.js'),path.join(__dirname, './ffl.js'),path.join(__dirname, '../ffl.js')];
+for(var i=0;i<fflPaths.length;i++){
+    if (!fs.existsSync(fflPaths[i])) {
+        continue;
+    }
+    fflPath=fflPaths[i];
+    i=fflPaths.length;
+}
+if(fflPath===null||fflPath===undefined){
+    console.warn("Couldn't find ffl.js. It still needs to be patched to have CJS exports.");
+    process.exit(0);
 }
 
 let content = fs.readFileSync(fflPath, 'utf8');
