@@ -1255,14 +1255,40 @@ let _fflRes;
 function getFFLRes() {
     // If we've already tried loading, just return the result
     if (_fflRes !== undefined) return _fflRes;
-    for (const path of ["./FFLResHigh.dat", "./ffl/FFLResHigh.dat", "./AFLResHigh.dat", "./afl/AFLResHigh.dat", "./ffl/AFLResHigh.dat"]) {
-        if (fs.existsSync(path)) {
-            // Convert Buffer to Uint8Array explicitly
-            const buffer = fs.readFileSync(path);
-            return _fflRes = new Uint8Array(buffer);
+    
+    const searchPaths = [
+        "./FFLResHigh.dat",
+        "../FFLResHigh.dat",
+        "../../FFLResHigh.dat",
+        "./ffl/FFLResHigh.dat",
+        "./afl/AFLResHigh.dat",
+        "../ffl/FFLResHigh.dat",
+        "../afl/AFLResHigh.dat",
+        "../../ffl/FFLResHigh.dat",
+        "../../afl/AFLResHigh.dat"
+    ];
+    
+    for (const filePath of searchPaths) {
+        try {
+            if (fs.existsSync(filePath)) {
+                const stats = fs.statSync(filePath);
+                // Make sure it's a file, not a directory
+                if (stats.isFile()) {
+                    // Convert Buffer to Uint8Array explicitly
+                    const buffer = fs.readFileSync(filePath);
+                    _fflRes = new Uint8Array(buffer);
+                    console.log(`Loaded FFLResHigh.dat from: ${filePath} (${_fflRes.length} bytes)`);
+                    return _fflRes;
+                }
+            }
+        } catch (e) {
+            // Silently continue to next path
+            continue;
         }
     }
+    
     // If no file found, mark as null
+    console.warn('FFLResHigh.dat not found. Mii rendering will fall back to Mii Studio.');
     return _fflRes = null;
 }
 
@@ -1742,23 +1768,88 @@ function convertMii(jsonIn, typeTo) {
         miiTo.console = "wii";
     }
     else if (typeFrom === "wii") {
-        miiTo.perms.sharing = mii.general.mingle;
-        miiTo.perms.copying = mii.general.mingle;
-        miiTo.hair.style = convTables.hairWiiTo3DS[mii.hair.page][mii.hair.type];
-        miiTo.face.shape = convTables.faceWiiTo3DS[mii.face.shape];
+        miiTo.perms.sharing = mii.perms.mingle;
+        miiTo.perms.copying = mii.perms.mingle;
+        
+        // Convert hair
+        const hairConv = convTables.hairWiiTo3DS[mii.hair.page][mii.hair.type];
+        miiTo.hair.page = hairConv[0];
+        miiTo.hair.type = hairConv[1];
+        miiTo.hair.color = mii.hair.color;
+        miiTo.hair.flipped = mii.hair.flipped;
+        
+        // Convert face
+        miiTo.face.type = convTables.faceWiiTo3DS[mii.face.type];
+        miiTo.face.color = mii.face.color;
         miiTo.face.makeup = 0;
         miiTo.face.feature = 0;
+        
+        // Handle facial features/makeup
         if (typeof (convTables.featureWiiTo3DS[mii.face.feature]) === 'string') {
-            miiTo.face.makeup = makeups3DS[+convTables.featureWiiTo3DS[mii.face.feature]];
+            miiTo.face.makeup = +convTables.featureWiiTo3DS[mii.face.feature];
         }
         else {
-            miiTo.face.feature = faceFeatures3DS[convTables.featureWiiTo3DS[mii.face.feature]];
+            miiTo.face.feature = +convTables.featureWiiTo3DS[mii.face.feature];
         }
-        miiTo.eyes.squash = 3;
-        miiTo.eyebrows.squash = 3;
+        
+        // Convert eyes - preserve page/type structure
+        miiTo.eyes.page = mii.eyes.page;
+        miiTo.eyes.type = mii.eyes.type;
+        miiTo.eyes.color = mii.eyes.color;
+        miiTo.eyes.size = mii.eyes.size;
+        miiTo.eyes.squash = 3; // Default for 3DS
+        miiTo.eyes.rotation = mii.eyes.rotation;
+        miiTo.eyes.distanceApart = mii.eyes.distanceApart;
+        miiTo.eyes.yPosition = mii.eyes.yPosition;
+        
+        // Convert eyebrows - preserve page/type structure
+        miiTo.eyebrows.page = mii.eyebrows.page;
+        miiTo.eyebrows.type = mii.eyebrows.type;
+        miiTo.eyebrows.color = mii.eyebrows.color;
+        miiTo.eyebrows.size = mii.eyebrows.size;
+        miiTo.eyebrows.squash = 3; // Default for 3DS
+        miiTo.eyebrows.rotation = mii.eyebrows.rotation;
+        miiTo.eyebrows.distanceApart = mii.eyebrows.distanceApart;
+        miiTo.eyebrows.yPosition = mii.eyebrows.yPosition;
+        
+        // Convert nose - preserve page/type structure
+        miiTo.nose.page = mii.nose.page || 0;
+        miiTo.nose.type = mii.nose.type;
+        miiTo.nose.size = mii.nose.size;
+        miiTo.nose.yPosition = mii.nose.yPosition;
+        
+        // Convert mouth - preserve page/type structure
+        miiTo.mouth.page = mii.mouth.page;
+        miiTo.mouth.type = mii.mouth.type;
         miiTo.mouth.color = mii.mouth.color;
-        miiTo.mouth.squash = 3;
-        miiTo.console = "3ds";
+        miiTo.mouth.size = mii.mouth.size;
+        miiTo.mouth.squash = 3; // Default for 3DS
+        miiTo.mouth.yPosition = mii.mouth.yPosition;
+        
+        // Convert glasses
+        miiTo.glasses.type = mii.glasses.type;
+        miiTo.glasses.color = mii.glasses.color;
+        miiTo.glasses.size = mii.glasses.size;
+        miiTo.glasses.yPosition = mii.glasses.yPosition;
+        
+        // Convert beard
+        miiTo.beard.mustache.type = mii.beard.mustache.type;
+        miiTo.beard.mustache.size = mii.beard.mustache.size;
+        miiTo.beard.mustache.yPosition = mii.beard.mustache.yPosition;
+        miiTo.beard.type = mii.beard.type;
+        miiTo.beard.color = mii.beard.color;
+        
+        // Convert mole
+        miiTo.mole.on = mii.mole.on;
+        miiTo.mole.size = mii.mole.size;
+        miiTo.mole.xPosition = mii.mole.xPosition;
+        miiTo.mole.yPosition = mii.mole.yPosition;
+        
+        // Copy general info
+        miiTo.general = { ...mii.general };
+        miiTo.meta = { ...mii.meta };
+        
+        miiTo.console = "3DS";
     }
     return miiTo;
 }
@@ -1838,7 +1929,11 @@ function convertStudioToMii(input) {
             gender: s[0x16],
             favoriteColor: s[0x15],
             height: s[0x1E],
-            weight: s[0x02]
+            weight: s[0x02],
+
+            //The following is not provided by Studio codes and are hardcoded
+            birthday:0,
+            birthMonth:0
         },
 
         face: {
@@ -1937,7 +2032,8 @@ function convertStudioToMii(input) {
         meta: {
             name: "Studio Mii",
             creatorName: "StudioUser",
-            console: "3DS"
+            console: "3DS",
+            type: "Default"
         },
 
         perms: {
@@ -2255,182 +2351,208 @@ async function renderMiiWithStudio(jsonIn) {
     var studioMii = convertMiiToStudio(jsonIn);
     return await downloadImage('https://studio.mii.nintendo.com/miis/image.png?data=' + studioMii + "&width=270&type=face");
 }
-async function createFFLMiiIcon(data, width, height, useBody, shirtColor, fflRes) {
-    /**
-     * Creates a Mii face render using FFL.js/Three.js/gl-headless.
-     * @example
-     * const fs = require('fs');
-     * // NOTE: ASSUMES that this function IS EXPORTED in index.js.
-     * const createFFLMiiIcon = require('./index.js').createFFLMiiIcon;
-     * const miiData = '000d142a303f434b717a7b84939ba6b2bbbec5cbc9d0e2ea010d15252b3250535960736f726870757f8289a0a7aeb1';
-     * const outFilePath = 'mii-render.png';
-     * const fflRes = fs.readFileSync('./FFLResHigh.dat');
-     * createFFLMiiIcon(miiData, 512, 512, fflRes)
-     *   .then(pngBytes => fs.writeFileSync(outFilePath, pngBytes));
-     */
 
-    // Create WebGL context.
-    const gl = createGL(width, height);
-    if (!gl) {
-        throw new Error('Failed to create WebGL 1 context');
+
+function flipPixelsVertically(src, w, h) {
+    const dst = new Uint8Array(src.length);
+    const row = w * 4;
+    for (let y = 0; y < h; y++) {
+        const a = y * row, b = (h - 1 - y) * row;
+        dst.set(src.subarray(a, a + row), b);
     }
+    return dst;
+}
+function fitCameraToObject(camera, object3D) {
+    const padding=0.525;
+    const box = new THREE.Box3().setFromObject(object3D);
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
 
-    // Create a dummy canvas for Three.js to use.
+    const maxSize = Math.max(size.y, size.x / camera.aspect);
+    const fov = (camera.fov ?? 30) * Math.PI / 180;
+    const dist = (maxSize * padding) / Math.tan(fov / 2);
+
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);      // forward
+    dir.normalize().multiplyScalar(-dist); // back
+
+    camera.position.copy(center).add(dir);
+    camera.near = Math.max(0.1, dist - maxSize * 3.0);
+    camera.far  = dist + maxSize * 3.0;
+    camera.lookAt(center);
+    camera.updateProjectionMatrix();
+}
+async function createFFLMiiIcon(data, options, shirtColor, fflRes) {
+    /**
+     * Mii render with optional full-body framing.
+     * - default/false: legacy framing (600x600, projection flip, no fit)
+     * - true: full-body (600x900, auto-fit, upright)
+     */
+    options ||= {};
+    const isFullBody = !!options.fullBody;
+
+    // --- Dimensions / GL ---
+    const width = 600;
+    const height = isFullBody ? 900 : 600;
+
+    const gl = createGL(width, height);
+    if (!gl) throw new Error("Failed to create WebGL 1 context");
+
+    // --- Gender / mesh names ---
+    let shirtMesh = "mesh_1_";
+    if (typeof options.gender === "string") {
+        options.gender = options.gender.toLowerCase() === "female" ? "Female" : "Male";
+    }
+    else if (typeof options.gender === "number") {
+        options.gender = options.gender === 1 ? "Female" : "Male";
+    }
+    else{
+        options.gender = "Male";
+    }
+    if (options.gender === "Female") shirtMesh = "mesh_0_";
+
+    // --- Fake canvas for three ---
     const canvas = {
         width, height, style: {},
-        addEventListener() { },
-        removeEventListener() { },
-        // Return the context for 'webgl' (not webgl2)
-        getContext: (type, _) => type === 'webgl' ? gl : null,
+        addEventListener() {}, removeEventListener() {},
+        getContext: (type) => (type === "webgl" ? gl : null),
     };
+    globalThis.self ??= { cancelAnimationFrame: () => {} };
 
-    // WebGLRenderer constructor sets "self" as the context.
-    // As of r162, it only tries to call cancelAnimationFrame frame on it.
-    globalThis.self ??= {
-        // Mock window functions called by Three.js.
-        cancelAnimationFrame: () => { },
-    };
-    // Create the Three.js renderer and scene.
     const renderer = new THREE.WebGLRenderer({ canvas, context: gl, alpha: true });
-    setIsWebGL1State(!renderer.capabilities.isWebGL2); // Tell FFL.js we are WebGL1
+    renderer.setSize(width, height, false);
+    setIsWebGL1State(!renderer.capabilities.isWebGL2);
 
     const scene = new THREE.Scene();
-    scene.background = null; // Transparent background.
+    scene.background = null;
 
-    if (useBody) {
-        // After: const scene = new THREE.Scene(); scene.background = null;
-        const ambient = new THREE.AmbientLight(0xffffff, 0.15);
-        scene.add(ambient);
-
-        const rim = new THREE.DirectionalLight(0xffffff, 3);
-        rim.position.set(0.5, -7, -1.0);
-        scene.add(rim);
-
+    // --- Lights ---
+    var ambient = new THREE.AmbientLight(0xffffff, 0.15);
+    var rim = new THREE.DirectionalLight(0xffffff, 3);
+    rim.position.set(0.5, -7, -1.0);
+    if(isFullBody){
+        rim = new THREE.DirectionalLight(0xffffff, 1.5);
+        rim.position.set(-4, 10, 2.0);
     }
+    scene.add(ambient, rim);
 
     let ffl, currentCharModel;
 
-    const _realConsoleDebug = console.debug;
-    console.debug = () => { };
+    const _realDebug = console.debug;
+    console.debug = () => {};
+
     try {
-        // Initialize FFL
+        // FFL init + head
         ffl = await initializeFFL(fflRes, ModuleFFL);
-
-        // Create Mii model and add to the scene.
-        const studioRaw = parseHexOrB64ToUint8Array(data); // Parse studio data
-
-        // Convert Uint8Array to Buffer for struct-fu compatibility
+        const studioRaw = parseHexOrB64ToUint8Array(data);
         const studioBuffer = Buffer.from(studioRaw);
 
         currentCharModel = createCharModel(studioBuffer, null, FFLShaderMaterial, ffl.module);
-        initCharModelTextures(currentCharModel, renderer); // Initialize fully
-        scene.add(currentCharModel.meshes); // Add to scene
+        initCharModelTextures(currentCharModel, renderer);
 
-        //Add body
-        if (useBody) {
-            if (typeof GLTFLoader === 'undefined' || !GLTFLoader) {
-                const mod = await import('three/examples/jsm/loaders/GLTFLoader.js');
-                GLTFLoader = mod.GLTFLoader;
-            }
-            //Read GLB from disk and parse (avoids URL/fetch issues)
-            const absPath = path.resolve(__dirname, './mii-body.glb');
-            const buf = fs.readFileSync(absPath);
-            const arrayBuffer = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
-            const loader = new GLTFLoader();
-            const gltf = await new Promise((resolve, reject) => {
-                loader.parse(
-                    arrayBuffer,
-                    path.dirname(absPath) + path.sep,
-                    resolve,
-                    reject
-                );
-            });
-
-            const body = gltf.scene;
-
-            body.position.y -= 110;
-
-            //Recolor
-            body.userData.isMiiBody = true;
-            body.traverse(o => {
-                if (o.isMesh) {
-                    if (!o.geometry.attributes.normal) {
-                        o.geometry.computeVertexNormals();
-                    }
-                    const isShirt = (o.name === 'mesh_1_');
-                    o.material?.dispose?.();
-                    o.material = new THREE.MeshLambertMaterial({
-                        //["Red", "Orange", "Yellow", "Lime", "Green", "Blue", "Cyan", "Pink", "Purple", "Brown", "White", "Black"]
-                        color: isShirt ? [0xFF2400, 0xF08000, 0xFFD700, 0xAAFF00, 0x008000, 0x0000FF, 0x00D7FF, 0xFF69B4, 0x7F00FF, 0x6F4E37, 0xFFFFFF, 0x303030][shirtColor] : 0x808080,
-                        emissive: isShirt ? 0x330000 : 0x222222,
-                        emissiveIntensity: 0.0
-                    });
-                    o.material.side = THREE.DoubleSide;
-                    o.material.needsUpdate = true;
-                }
-            });
-
-
-
-            // (6) Add to scene
-            scene.add(body);
+        // --- Body (always load; legacy also had body visible) ---
+        if (typeof GLTFLoader === "undefined" || !GLTFLoader) {
+            const mod = await import("three/examples/jsm/loaders/GLTFLoader.js");
+            GLTFLoader = mod.GLTFLoader;
         }
+        const absPath = path.resolve(__dirname, `./mii${options.gender}Body.glb`);
+        const buf = fs.readFileSync(absPath);
+        const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+        const loader = new GLTFLoader();
+        const gltf = await new Promise((res, rej) =>
+            loader.parse(ab, path.dirname(absPath) + path.sep, res, rej)
+        );
+        const body = gltf.scene;
+        body.position.y -= 110;
+        body.userData.isMiiBody = true;
 
-
-        // Use the camera for an icon pose.
-        const camera = getCameraForViewType(ViewType.MakeIcon);
-
-        // The pixels coming from WebGL are upside down.
-        camera.projectionMatrix.elements[5] *= -1; // Flip the camera Y axis.
-        // When flipping the camera, the triangles are in the wrong direction.
-        scene.traverse(mesh => {
-            if (
-                mesh.isMesh &&
-                mesh.material.side === THREE.FrontSide &&
-                !mesh.userData.isMiiBody
-            ) {
-                mesh.material.side = THREE.BackSide;
+        // Recolor
+        body.traverse((o) => {
+            if (o.isMesh) {
+                if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
+                const isShirt = o.name === shirtMesh;
+                o.material?.dispose?.();
+                o.material = new THREE.MeshLambertMaterial({
+                    color: isShirt
+                        ? [
+                            0xff2400, 0xf08000, 0xffd700, 0xaaff00, 0x008000, 0x0000ff,
+                            0x00d7ff, 0xff69b4, 0x7f00ff, 0x6f4e37, 0xffffff, 0x303030,
+                          ][shirtColor]
+                        : 0x808080,
+                    emissive: isShirt ? 0x330000 : 0x222222,
+                    emissiveIntensity: 0.0,
+                    side: THREE.DoubleSide,
+                });
+                o.material.needsUpdate = true;
             }
         });
 
+        // --- Scene graph ---
+        const wholeMii = new THREE.Group();
+        wholeMii.add(currentCharModel.meshes);
+        wholeMii.add(body);
+        scene.add(wholeMii);
 
-        // Render the scene, and read the pixels into a buffer.
+        // --- Camera ---
+        const camera = getCameraForViewType(ViewType.MakeIcon);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+
+        if (isFullBody) {
+            // Upright; no projection flip. Fit entire character.
+            fitCameraToObject(camera, wholeMii);
+        }
+        else {
+            // Legacy behavior: flip projection Y and flip front faces (except body)
+            camera.projectionMatrix.elements[5] *= -1;
+            scene.traverse((mesh) => {
+                if (mesh.isMesh && mesh.material.side === THREE.FrontSide && !mesh.userData.isMiiBody) {
+                    mesh.material.side = THREE.BackSide;
+                }
+            });
+            // No camera fitting → same close framing as before.
+        }
+
+        // --- Render ---
         renderer.render(scene, camera);
+
         const pixels = new Uint8Array(width * height * 4);
         gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
-        // Draw the pixels to a new canvas.
-        const canvas = createCanvas(width, height);
-        const img = new ImageData(new Uint8ClampedArray(pixels), width, height);
-        canvas.getContext('2d').putImageData(img, 0, 0);
+        // For fullBody we keep camera upright and flip pixels to correct Y;
+        // for legacy we already flipped projection → keep pixels as-is.
+        const outPixels = isFullBody ? flipPixelsVertically(pixels, width, height) : pixels;
 
-        return canvas.toBuffer('image/png'); // Encode image to PNG
-
-    } catch (error) {
-        console.error('Error during rendering:', error);
-        throw error;
-    } finally {
-        // Clean up.
+        const canvas2 = createCanvas(width, height);
+        const img = new ImageData(new Uint8ClampedArray(outPixels), width, height);
+        canvas2.getContext("2d").putImageData(img, 0, 0);
+        return canvas2.toBuffer("image/png");
+    }
+    catch (err) {
+        console.error("Error rendering Mii:", err);
+        throw err;
+    }
+    finally {
         try {
-            (currentCharModel) && currentCharModel.dispose(); // Mii model
-            exitFFL(ffl.module, ffl.resourceDesc); // Free fflRes from memory.
-            renderer.dispose(); // Dispose Three.js renderer.
+            currentCharModel?.dispose?.();
+            exitFFL(ffl?.module, ffl?.resourceDesc);
+            renderer.dispose();
             gl.finish();
-        } catch (error) {
-            console.warn('Error disposing Mii and renderer:', error);
-        }// finally {
-        //    console.debug = _realConsoleDebug;
-        //}
+        } catch {}
+        console.debug = _realDebug;
     }
 }
-async function renderMii(jsonIn, fflRes = getFFLRes()) {
+
+async function renderMii(jsonIn, options={}, fflRes = getFFLRes()) {
     if (!["3ds", "wii u"].includes(jsonIn.console?.toLowerCase())) {
         jsonIn = convertMii(jsonIn);
     }
     const studioMii = convertMiiToStudio(jsonIn);
-    const width = height = 600;
+    options.gender=jsonIn.general.gender;
 
-    return createFFLMiiIcon(studioMii, width, height, true, jsonIn.general.favoriteColor, fflRes);
+    return createFFLMiiIcon(studioMii, options, jsonIn.general.favoriteColor, fflRes);
 }
 async function writeWiiBin(jsonIn, outPath) {
     if (jsonIn.console?.toLowerCase() !== "wii") {
@@ -2674,7 +2796,9 @@ async function write3DSQR(miiJson, outPath, returnBin, fflRes = getFFLRes()) {
     }
     const buffer = Buffer.from(buffers);
     var encryptedData = Buffer.from(encodeAesCcm(new Uint8Array(buffer)));
-
+    if(returnBin){
+        return encryptedData;
+    }
     //Prepare a QR code
     const options = {
         width: 300,
