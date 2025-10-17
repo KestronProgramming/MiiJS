@@ -1255,7 +1255,7 @@ let _fflRes;
 function getFFLRes() {
     // If we've already tried loading, just return the result
     if (_fflRes !== undefined) return _fflRes;
-    
+
     const searchPaths = [
         "./FFLResHigh.dat",
         "../FFLResHigh.dat",
@@ -1267,7 +1267,7 @@ function getFFLRes() {
         "../../ffl/FFLResHigh.dat",
         "../../afl/AFLResHigh.dat"
     ];
-    
+
     for (const filePath of searchPaths) {
         try {
             if (fs.existsSync(filePath)) {
@@ -1286,7 +1286,7 @@ function getFFLRes() {
             continue;
         }
     }
-    
+
     // If no file found, mark as null
     console.warn('FFLResHigh.dat not found. Mii rendering will fall back to Mii Studio.');
     return _fflRes = null;
@@ -1770,20 +1770,20 @@ function convertMii(jsonIn, typeTo) {
     else if (typeFrom === "wii") {
         miiTo.perms.sharing = mii.perms.mingle;
         miiTo.perms.copying = mii.perms.mingle;
-        
+
         // Convert hair
         const hairConv = convTables.hairWiiTo3DS[mii.hair.page][mii.hair.type];
         miiTo.hair.page = hairConv[0];
         miiTo.hair.type = hairConv[1];
         miiTo.hair.color = mii.hair.color;
         miiTo.hair.flipped = mii.hair.flipped;
-        
+
         // Convert face
         miiTo.face.type = convTables.faceWiiTo3DS[mii.face.type];
         miiTo.face.color = mii.face.color;
         miiTo.face.makeup = 0;
         miiTo.face.feature = 0;
-        
+
         // Handle facial features/makeup
         if (typeof (convTables.featureWiiTo3DS[mii.face.feature]) === 'string') {
             miiTo.face.makeup = +convTables.featureWiiTo3DS[mii.face.feature];
@@ -1791,7 +1791,7 @@ function convertMii(jsonIn, typeTo) {
         else {
             miiTo.face.feature = +convTables.featureWiiTo3DS[mii.face.feature];
         }
-        
+
         // Convert eyes - preserve page/type structure
         miiTo.eyes.page = mii.eyes.page;
         miiTo.eyes.type = mii.eyes.type;
@@ -1801,7 +1801,7 @@ function convertMii(jsonIn, typeTo) {
         miiTo.eyes.rotation = mii.eyes.rotation;
         miiTo.eyes.distanceApart = mii.eyes.distanceApart;
         miiTo.eyes.yPosition = mii.eyes.yPosition;
-        
+
         // Convert eyebrows - preserve page/type structure
         miiTo.eyebrows.page = mii.eyebrows.page;
         miiTo.eyebrows.type = mii.eyebrows.type;
@@ -1811,13 +1811,13 @@ function convertMii(jsonIn, typeTo) {
         miiTo.eyebrows.rotation = mii.eyebrows.rotation;
         miiTo.eyebrows.distanceApart = mii.eyebrows.distanceApart;
         miiTo.eyebrows.yPosition = mii.eyebrows.yPosition;
-        
+
         // Convert nose - preserve page/type structure
         miiTo.nose.page = mii.nose.page || 0;
         miiTo.nose.type = mii.nose.type;
         miiTo.nose.size = mii.nose.size;
         miiTo.nose.yPosition = mii.nose.yPosition;
-        
+
         // Convert mouth - preserve page/type structure
         miiTo.mouth.page = mii.mouth.page;
         miiTo.mouth.type = mii.mouth.type;
@@ -1825,30 +1825,30 @@ function convertMii(jsonIn, typeTo) {
         miiTo.mouth.size = mii.mouth.size;
         miiTo.mouth.squash = 3; // Default for 3DS
         miiTo.mouth.yPosition = mii.mouth.yPosition;
-        
+
         // Convert glasses
         miiTo.glasses.type = mii.glasses.type;
         miiTo.glasses.color = mii.glasses.color;
         miiTo.glasses.size = mii.glasses.size;
         miiTo.glasses.yPosition = mii.glasses.yPosition;
-        
+
         // Convert beard
         miiTo.beard.mustache.type = mii.beard.mustache.type;
         miiTo.beard.mustache.size = mii.beard.mustache.size;
         miiTo.beard.mustache.yPosition = mii.beard.mustache.yPosition;
         miiTo.beard.type = mii.beard.type;
         miiTo.beard.color = mii.beard.color;
-        
+
         // Convert mole
         miiTo.mole.on = mii.mole.on;
         miiTo.mole.size = mii.mole.size;
         miiTo.mole.xPosition = mii.mole.xPosition;
         miiTo.mole.yPosition = mii.mole.yPosition;
-        
+
         // Copy general info
         miiTo.general = { ...mii.general };
         miiTo.meta = { ...mii.meta };
-        
+
         miiTo.console = "3DS";
     }
     return miiTo;
@@ -1932,8 +1932,8 @@ function convertStudioToMii(input) {
             weight: s[0x02],
 
             //The following is not provided by Studio codes and are hardcoded
-            birthday:0,
-            birthMonth:0
+            birthday: 0,
+            birthMonth: 0
         },
 
         face: {
@@ -2362,8 +2362,62 @@ function flipPixelsVertically(src, w, h) {
     }
     return dst;
 }
+function invLerp(a, b, v) { return (v - a) / (b - a); }
+function clamp01(t) { return Math.max(0, Math.min(1, t)); }
+function easePow(t, p) { return Math.pow(t, p); }
+// ------------------------------
+// Small helpers
+// ------------------------------
+function remap01(v, min = 0, max = 127) {
+    const cl = Math.min(max, Math.max(min, +v || 0));
+    return (cl - min) / (max - min || 1);
+}
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function offsetObjectAlongView(object3D, camera, delta) {
+    const forward = new THREE.Vector3();
+    camera.getWorldDirection(forward);      // forward
+    object3D.position.addScaledVector(forward, -delta); // -delta → toward camera
+}
+
+// Project a pixel Y offset at a given depth into world Y units
+function pixelYToWorldY(camera, depthZ, pixels, viewportHeightPx) {
+    // Visible height at depth for a perspective camera:
+    const fov = (camera.fov ?? 30) * Math.PI / 180;
+    const visibleH = 2 * Math.abs(depthZ) * Math.tan(fov / 2);
+    return (pixels / viewportHeightPx) * visibleH;
+}
+
+// Render a specific layer to a pixel buffer (optionally flipY)
+function renderLayerToPixels(renderer, scene, camera, gl, width, height, layerIndex, flipY) {
+    const rt = new THREE.WebGLRenderTarget(width, height, { depthBuffer: true, stencilBuffer: false });
+    camera.layers.set(layerIndex);
+    renderer.setRenderTarget(rt);
+    renderer.clear(true, true, true);
+    renderer.render(scene, camera);
+
+    const pixels = new Uint8Array(width * height * 4);
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+    renderer.setRenderTarget(null);
+    rt.dispose();
+
+    if (!flipY) return pixels;
+
+    // flipVert
+    const rowBytes = width * 4;
+    const out = new Uint8Array(pixels.length);
+    for (let y = 0; y < height; y++) {
+        const src = y * rowBytes;
+        const dst = (height - 1 - y) * rowBytes;
+        out.set(pixels.subarray(src, src + rowBytes), dst);
+    }
+    return out;
+}
+
+// Camera fit (unchanged)
 function fitCameraToObject(camera, object3D) {
-    const padding=0.525;
+    const padding = 0.525;
     const box = new THREE.Box3().setFromObject(object3D);
     const size = new THREE.Vector3();
     const center = new THREE.Vector3();
@@ -2375,32 +2429,28 @@ function fitCameraToObject(camera, object3D) {
     const dist = (maxSize * padding) / Math.tan(fov / 2);
 
     const dir = new THREE.Vector3();
-    camera.getWorldDirection(dir);      // forward
-    dir.normalize().multiplyScalar(-dist); // back
+    camera.getWorldDirection(dir);            // forward
+    dir.normalize().multiplyScalar(-dist);    // back
 
     camera.position.copy(center).add(dir);
     camera.near = Math.max(0.1, dist - maxSize * 3.0);
-    camera.far  = dist + maxSize * 3.0;
+    camera.far = dist + maxSize * 3.0;
     camera.lookAt(center);
     camera.updateProjectionMatrix();
 }
 async function createFFLMiiIcon(data, options, shirtColor, fflRes) {
-    /**
-     * Mii render with optional full-body framing.
-     * - default/false: legacy framing (600x600, projection flip, no fit)
-     * - true: full-body (600x900, auto-fit, upright)
-     */
     options ||= {};
     const isFullBody = !!options.fullBody;
 
-    // --- Dimensions / GL ---
-    const width = 600;
-    const height = isFullBody ? 900 : 600;
+    const width = 450;
+    const height = 900;
+    const BODY_SCALE_Y_RANGE = [0.55, 1.35];
+    const FULLBODY_CROP_BOTTOM_PX_RANGE = [220, 40]; // [at minYScale, at maxYScale]
 
     const gl = createGL(width, height);
     if (!gl) throw new Error("Failed to create WebGL 1 context");
 
-    // --- Gender / mesh names ---
+    // Normalize potential gender inputs; And the body files for females and males have different mesh names for some reason, so adjust for that too
     let shirtMesh = "mesh_1_";
     if (typeof options.gender === "string") {
         options.gender = options.gender.toLowerCase() === "female" ? "Female" : "Male";
@@ -2408,51 +2458,50 @@ async function createFFLMiiIcon(data, options, shirtColor, fflRes) {
     else if (typeof options.gender === "number") {
         options.gender = options.gender === 1 ? "Female" : "Male";
     }
-    else{
+    else {
         options.gender = "Male";
     }
     if (options.gender === "Female") shirtMesh = "mesh_0_";
 
-    // --- Fake canvas for three ---
+    // Fake canvas
     const canvas = {
         width, height, style: {},
-        addEventListener() {}, removeEventListener() {},
-        getContext: (type) => (type === "webgl" ? gl : null),
+        addEventListener() { }, removeEventListener() { },
+        getContext: (t) => (t === "webgl" ? gl : null),
     };
-    globalThis.self ??= { cancelAnimationFrame: () => {} };
+    globalThis.self ??= { cancelAnimationFrame: () => { } };
 
     const renderer = new THREE.WebGLRenderer({ canvas, context: gl, alpha: true });
     renderer.setSize(width, height, false);
     setIsWebGL1State(!renderer.capabilities.isWebGL2);
 
+    // Color mgmt + silence warnings
+    THREE.ColorManagement.enabled = true;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    const _warn = console.warn;
+    console.warn = function (...args) {
+        const s = String(args[0] ?? "");
+        if (s.includes("ImageUtils.sRGBToLinear(): Unsupported image type")) return;
+        if (s.includes("Texture is not power of two")) return;
+        return _warn.apply(this, args);
+    };
+
     const scene = new THREE.Scene();
     scene.background = null;
 
-    // --- Lights ---
-    var ambient = new THREE.AmbientLight(0xffffff, 0.15);
-    var rim = new THREE.DirectionalLight(0xffffff, 3);
-    rim.position.set(0.5, -7, -1.0);
-    if(isFullBody){
-        rim = new THREE.DirectionalLight(0xffffff, 1.5);
-        rim.position.set(-4, 10, 2.0);
-    }
-    scene.add(ambient, rim);
-
     let ffl, currentCharModel;
-
     const _realDebug = console.debug;
-    console.debug = () => {};
+    console.debug = () => { };
 
     try {
-        // FFL init + head
+        // Head (FFL)
         ffl = await initializeFFL(fflRes, ModuleFFL);
         const studioRaw = parseHexOrB64ToUint8Array(data);
         const studioBuffer = Buffer.from(studioRaw);
-
         currentCharModel = createCharModel(studioBuffer, null, FFLShaderMaterial, ffl.module);
         initCharModelTextures(currentCharModel, renderer);
 
-        // --- Body (always load; legacy also had body visible) ---
+        // Body GLTF (for baking)
         if (typeof GLTFLoader === "undefined" || !GLTFLoader) {
             const mod = await import("three/examples/jsm/loaders/GLTFLoader.js");
             GLTFLoader = mod.GLTFLoader;
@@ -2468,7 +2517,8 @@ async function createFFLMiiIcon(data, options, shirtColor, fflRes) {
         body.position.y -= 110;
         body.userData.isMiiBody = true;
 
-        // Recolor
+        // Recolor body (bakes into texture)
+        var pantsColor=[0x808080,0xFFC000,0x89CFF0,0x913831][["default","special","foreign","favorite","favorited"].indexOf(options.pantsType.toLowerCase())];
         body.traverse((o) => {
             if (o.isMesh) {
                 if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
@@ -2479,8 +2529,8 @@ async function createFFLMiiIcon(data, options, shirtColor, fflRes) {
                         ? [
                             0xff2400, 0xf08000, 0xffd700, 0xaaff00, 0x008000, 0x0000ff,
                             0x00d7ff, 0xff69b4, 0x7f00ff, 0x6f4e37, 0xffffff, 0x303030,
-                          ][shirtColor]
-                        : 0x808080,
+                        ][shirtColor]
+                        : pantsColor,
                     emissive: isShirt ? 0x330000 : 0x222222,
                     emissiveIntensity: 0.0,
                     side: THREE.DoubleSide,
@@ -2489,68 +2539,182 @@ async function createFFLMiiIcon(data, options, shirtColor, fflRes) {
             }
         });
 
-        // --- Scene graph ---
+        // Graph (only used for framing / body bbox)
         const wholeMii = new THREE.Group();
-        wholeMii.add(currentCharModel.meshes);
         wholeMii.add(body);
+        wholeMii.add(currentCharModel.meshes);
         scene.add(wholeMii);
 
-        // --- Camera ---
+        // Layers for baking head/body
+        body.traverse(obj => obj.layers?.set(1));
+        currentCharModel.meshes.traverse(obj => obj.layers?.set(2)); // head only on 2
+
+        // Camera
         const camera = getCameraForViewType(ViewType.MakeIcon);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
+        fitCameraToObject(camera, wholeMii);
 
-        if (isFullBody) {
-            // Upright; no projection flip. Fit entire character.
-            fitCameraToObject(camera, wholeMii);
-        }
-        else {
-            // Legacy behavior: flip projection Y and flip front faces (except body)
-            camera.projectionMatrix.elements[5] *= -1;
-            scene.traverse((mesh) => {
-                if (mesh.isMesh && mesh.material.side === THREE.FrontSide && !mesh.userData.isMiiBody) {
-                    mesh.material.side = THREE.BackSide;
-                }
-            });
-            // No camera fitting → same close framing as before.
+        // --- Body world bounds (for plane sizing/placement)
+        const bodyBox = new THREE.Box3().setFromObject(body);
+        const bodySize = new THREE.Vector3();
+        const bodyCenter = new THREE.Vector3();
+        bodyBox.getSize(bodySize);
+        bodyBox.getCenter(bodyCenter);
+
+        // --- BODY BAKE (lights for body only, depend on mode)
+        const bakeAmbient = new THREE.AmbientLight(0xffffff, 0.15);
+        const bakeRim = new THREE.DirectionalLight(
+            0xffffff,
+            1.5
+        );
+        bakeRim.position.set(-3, 7, 1.0);
+        bakeAmbient.layers.enable(1);
+        bakeRim.layers.enable(1);
+        scene.add(bakeAmbient, bakeRim);
+
+        // Pass: body layer → pixels (no CPU flip; we'll let Three flip on texture)
+        const bodyPixels = renderLayerToPixels(renderer, scene, camera, gl, width, height, /*layer*/1, /*flipY*/false);
+        const bodyCanvas = createCanvas(width, height);
+        bodyCanvas.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(bodyPixels), width, height), 0, 0);
+
+        // Remove bake lights & 3D body; we’ll insert a plane instead
+        scene.remove(bakeAmbient, bakeRim);
+        wholeMii.remove(body);
+        bakeAmbient.dispose?.(); bakeRim.dispose?.();
+
+        // --- BODY PLANE (unlit; texture carries shading)
+        const bodyTex = new THREE.CanvasTexture(bodyCanvas);
+        bodyTex.colorSpace = THREE.SRGBColorSpace;
+        bodyTex.generateMipmaps = false;
+        bodyTex.minFilter = THREE.LinearFilter;
+        bodyTex.magFilter = THREE.LinearFilter;
+        bodyTex.wrapS = THREE.ClampToEdgeWrapping;
+        bodyTex.wrapT = THREE.ClampToEdgeWrapping;
+        bodyTex.flipY = true;   // let Three handle UV-space flip
+        bodyTex.premultiplyAlpha = true;
+        bodyTex.needsUpdate = true;
+        bodyTex.flipY = false;
+
+        const planeW = Math.max(1e-4, bodySize.x);
+        const planeH = Math.max(1e-4, bodySize.y);
+        const planeGeo = new THREE.PlaneGeometry(planeW, planeH);
+        const planeMat = new THREE.MeshBasicMaterial({ map: bodyTex, transparent: true, depthWrite: true, depthTest: true });
+        const bodyPlane = new THREE.Mesh(planeGeo, planeMat);
+
+        // Place plane at body world center so the neck peg aligns into head
+        bodyPlane.position.copy(bodyCenter);
+        bodyPlane.layers.set(2); // render with head
+
+        // === Apply height/weight scaling in BOTH modes ===
+        const w01 = remap01(options.weight ?? 64);
+        const h01 = remap01(options.height ?? 64);
+        const scaleX = lerp(0.55, 1.50, w01);
+        const scaleY = lerp(0.55, 1.35, h01);
+        bodyPlane.scale.set(scaleX, scaleY, 1);
+
+        // --- Auto vertical offset (per-mode) + manual per-mode knob ---
+        var tYraw = invLerp(BODY_SCALE_Y_RANGE[0], BODY_SCALE_Y_RANGE[1], scaleY);
+        var tY = clamp01(easePow(tYraw, 1));
+
+        const autoRange = [150, 125];
+
+        const autoOffsetYPx = autoRange[0] + (autoRange[1] - autoRange[0]) * tY;
+
+        // Manual knobs (mode-specific; falls back to legacy bodyOffsetYPx)
+        const manualPx = (options.bodyOffsetYPxFull ?? options.bodyOffsetYPx ?? 0);
+
+        const combinedOffsetYPx = Math.round(manualPx + autoOffsetYPx);
+
+        // Convert screen-px → world-Y at the plane depth & apply
+        if (combinedOffsetYPx) {
+            const planeDepthFromCam = bodyPlane.position.clone().sub(camera.position).length();
+            const worldYOffset = pixelYToWorldY(camera, planeDepthFromCam, combinedOffsetYPx, height);
+            bodyPlane.position.y += worldYOffset;
         }
 
-        // --- Render ---
+
+        // Optional depth nudge
+        const bodyDepthOffset = Number(options.bodyDepthOffset ?? 0);
+        if (bodyDepthOffset) offsetObjectAlongView(bodyPlane, camera, bodyDepthOffset);
+
+        scene.add(bodyPlane);
+
+        // Ensure head renders with the plane on the same layer and with NO head lights
+        currentCharModel.meshes.traverse(o => o.layers?.set(2));
+
+        // Final pass: render layer 2 (head + body plane), then flip pixels for PNG
+        camera.layers.set(2);
+        renderer.setRenderTarget(null);
+        renderer.clear(true, true, true);
         renderer.render(scene, camera);
 
-        const pixels = new Uint8Array(width * height * 4);
-        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        // Read back & flip to top-left
+        const finalPixels = new Uint8Array(width * height * 4);
+        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, finalPixels);
+        const upright = flipPixelsVertically(finalPixels, width, height);
 
-        // For fullBody we keep camera upright and flip pixels to correct Y;
-        // for legacy we already flipped projection → keep pixels as-is.
-        const outPixels = isFullBody ? flipPixelsVertically(pixels, width, height) : pixels;
+        // Stage onto a canvas
+        const stage = createCanvas(width, height);
+        stage.getContext("2d").putImageData(
+            new ImageData(new Uint8ClampedArray(upright), width, height),
+            0, 0
+        );
 
-        const canvas2 = createCanvas(width, height);
-        const img = new ImageData(new Uint8ClampedArray(outPixels), width, height);
-        canvas2.getContext("2d").putImageData(img, 0, 0);
-        return canvas2.toBuffer("image/png");
-    }
-    catch (err) {
+        // === FullBody-only: crop from the BOTTOM based on scaleY ===
+        let cropBottom = 0;
+        tYraw = invLerp(BODY_SCALE_Y_RANGE[0], BODY_SCALE_Y_RANGE[1], scaleY);
+        tY = clamp01(easePow(tYraw, 1));
+
+        // Interpolate bottom crop across the configured range
+        const bottomPx = Math.round(
+            FULLBODY_CROP_BOTTOM_PX_RANGE[0] +
+            (FULLBODY_CROP_BOTTOM_PX_RANGE[1] - FULLBODY_CROP_BOTTOM_PX_RANGE[0]) * tY
+        );
+
+        cropBottom = Math.max(0, Math.min(height - 1, bottomPx + (options.fullBodyCropExtraBottomPx ?? 0)));
+
+        // Output with bottom crop applied (no top crop)
+        const outH = Math.max(1, isFullBody?height - cropBottom:450);
+        const outCanvas = createCanvas(width, outH);
+        const ctxOut = outCanvas.getContext("2d");
+
+        // Source: take the top `outH` rows (i.e., drop `cropBottom` pixels at the bottom)
+        ctxOut.drawImage(
+            stage,
+            0, 0,            // sx, sy
+            width, outH,     // sw, sh
+            0, 0,            // dx, dy
+            width, outH      // dw, dh
+        );
+
+        return outCanvas.toBuffer("image/png");
+
+    } catch (err) {
         console.error("Error rendering Mii:", err);
         throw err;
-    }
-    finally {
+    } finally {
         try {
             currentCharModel?.dispose?.();
             exitFFL(ffl?.module, ffl?.resourceDesc);
             renderer.dispose();
             gl.finish();
-        } catch {}
+        } catch { }
         console.debug = _realDebug;
     }
 }
 
-async function renderMii(jsonIn, options={}, fflRes = getFFLRes()) {
+async function renderMii(jsonIn, options = {}, fflRes = getFFLRes()) {
     if (!["3ds", "wii u"].includes(jsonIn.console?.toLowerCase())) {
         jsonIn = convertMii(jsonIn);
     }
     const studioMii = convertMiiToStudio(jsonIn);
-    options.gender=jsonIn.general.gender;
+    options = Object.assign(options, {
+        gender: jsonIn.general.gender,
+        height: jsonIn.general.height,
+        weight: jsonIn.general.weight,
+        pantsType: jsonIn.meta?.type||"Default"
+    });
 
     return createFFLMiiIcon(studioMii, options, jsonIn.general.favoriteColor, fflRes);
 }
@@ -2796,7 +2960,7 @@ async function write3DSQR(miiJson, outPath, returnBin, fflRes = getFFLRes()) {
     }
     const buffer = Buffer.from(buffers);
     var encryptedData = Buffer.from(encodeAesCcm(new Uint8Array(buffer)));
-    if(returnBin){
+    if (returnBin) {
         return encryptedData;
     }
     //Prepare a QR code
@@ -3175,9 +3339,9 @@ module.exports = {
     miiWeightToRealWeight,//EXPERIMENTAL
 
     /*
-        Handle Amiibo Functions
-        insertMiiIntoAmiibo(amiiboDump, decrypted3DSMiiBuffer),
-        extractMiiFromAmiibo(amiiboDump)
+    Handle Amiibo Functions
+    insertMiiIntoAmiibo(amiiboDump, decrypted3DSMiiBuffer),
+    extractMiiFromAmiibo(amiiboDump)
     */
     ...require("./amiiboHandler.js")
 }
